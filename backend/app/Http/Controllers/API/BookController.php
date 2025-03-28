@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class BookController extends Controller
 {
@@ -342,29 +343,30 @@ class BookController extends Controller
                     'message' => 'Book not found'
                 ], 404);
             }
-             // Delete associated image
-            if ($book->Image) {
-                $key = $this->getS3KeyFromUrl($book->Image);
-                if ($key) {
-                    $s3 = new S3Client([
-                        'version' => 'latest',
-                        'region' => env('AWS_DEFAULT_REGION', 'ap-southeast-1'),
-                        'credentials' => [
-                            'key' => env('AWS_ACCESS_KEY_ID'),
-                            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-                        ],
-                    ]);
-                    
-                    $s3->deleteObject([
-                        'Bucket' => env('AWS_BUCKET'),
-                        'Key' => $key,
-                    ]);
-                }
-            }
             
-            // Delete associated image
-            if ($book->Image && Storage::exists('public/' . str_replace('storage/', '', $book->Image))) {
-                Storage::delete('public/' . str_replace('storage/', '', $book->Image));
+            // Delete associated image from S3
+            if ($book->Image) {
+                try {
+                    $key = $this->getS3KeyFromUrl($book->Image);
+                    if ($key) {
+                        $s3 = new S3Client([
+                            'version' => 'latest',
+                            'region' => env('AWS_DEFAULT_REGION', 'ap-southeast-1'),
+                            'credentials' => [
+                                'key' => env('AWS_ACCESS_KEY_ID'),
+                                'secret' => env('AWS_SECRET_ACCESS_KEY'),
+                            ],
+                        ]);
+                        
+                        $s3->deleteObject([
+                            'Bucket' => env('AWS_BUCKET'),
+                            'Key' => $key,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    // Log S3 deletion error but continue with database deletion
+                    Log::error('Failed to delete image from S3: ' . $e->getMessage());
+                }
             }
             
             // Delete associated details if needed
@@ -372,6 +374,7 @@ class BookController extends Controller
                 BookDetail::where('BookID', $id)->delete();
             }
             
+            // Delete the book
             $book->delete();
             
             return response()->json([
