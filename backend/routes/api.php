@@ -34,15 +34,19 @@ Route::prefix('books')->group(function () {
     Route::get('/{id}/related', [BookController::class, 'related']);
 });
 
-// Book Details CRUD routes
-Route::prefix('book-details')->group(function () {
-    Route::get('/', [BookDetailController::class, 'index']);
-    Route::post('/', [BookDetailController::class, 'store']);
-    Route::get('/{id}', [BookDetailController::class, 'show']);
-    Route::put('/{id}', [BookDetailController::class, 'update']);
-    Route::delete('/{id}', [BookDetailController::class, 'destroy']);
-    Route::get('/book/{bookId}', [BookDetailController::class, 'getByBookId']);
+// Books CRUD routes
+Route::prefix('books')->group(function () {
+    Route::get('/search', [BookController::class, 'search']);
+    Route::get('/', [BookController::class, 'index']);
+    Route::post('/', [BookController::class, 'store']);
+    Route::get('/featured', [BookController::class, 'featured']);
+    Route::get('/{id}', [BookController::class, 'show']);
+    Route::put('/{id}', [BookController::class, 'update']);
+    Route::delete('/{id}', [BookController::class, 'destroy']);
+    Route::get('/{id}/related', [BookController::class, 'related']);
+    Route::get('/{id}/image', [BookController::class, 'getImage']);
 });
+
 
 // Category CRUD routes
 Route::prefix('categories')->group(function () {
