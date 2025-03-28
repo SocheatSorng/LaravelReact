@@ -3,47 +3,237 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\OrderDetail;
+use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        try {
+            $query = Order::with(['user', 'orderDetails.book']);
+
+            // Filter by status
+            if ($request->has('status')) {
+                $query->where('Status', $request->status);
+            }
+
+            // Filter by date range
+            if ($request->has('from_date')) {
+                $query->whereDate('OrderDate', '>=', $request->from_date);
+            }
+            if ($request->has('to_date')) {
+                $query->whereDate('OrderDate', '<=', $request->to_date);
+            }
+
+            // Sort orders
+            $sortField = $request->input('sort_by', 'OrderDate');
+            $sortDirection = $request->input('sort_direction', 'desc');
+            $query->orderBy($sortField, $sortDirection);
+
+            // Paginate results
+            $perPage = $request->input('per_page', 10);
+            $orders = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $orders,
+                'message' => 'Orders retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve orders: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'UserID' => 'required|exists:tbUser,UserID',
+            'TotalAmount' => 'required|numeric|min:0',
+            'ShippingAddress' => 'required|string',
+            'PaymentMethod' => 'required|string',
+            'items' => 'required|array|min:1',
+            'items.*.BookID' => 'required|exists:tbBook,BookID',
+            'items.*.Quantity' => 'required|integer|min:1',
+            'items.*.Price' => 'required|numeric|min:0'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Create order
+            $order = Order::create([
+                'UserID' => $request->UserID,
+                'TotalAmount' => $request->TotalAmount,
+                'Status' => 'pending',
+                'ShippingAddress' => $request->ShippingAddress,
+                'PaymentMethod' => $request->PaymentMethod
+            ]);
+
+            // Create order details
+            foreach ($request->items as $item) {
+                $book = Book::find($item['BookID']);
+                
+                // Check stock
+                if ($book->StockQuantity < $item['Quantity']) {
+                    throw new \Exception("Insufficient stock for book: {$book->Title}");
+                }
+
+                // Create order detail
+                OrderDetail::create([
+                    'OrderID' => $order->OrderID,
+                    'BookID' => $item['BookID'],
+                    'Quantity' => $item['Quantity'],
+                    'Price' => $item['Price']
+                ]);
+
+                // Update stock
+                $book->update([
+                    'StockQuantity' => $book->StockQuantity - $item['Quantity']
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'data' => $order->load(['orderDetails.book', 'user']),
+                'message' => 'Order created successfully'
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create order: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        try {
+            $order = Order::with(['user', 'orderDetails.book'])->find($id);
+            
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $order,
+                'message' => 'Order retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve order: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'Status' => 'required|in:pending,processing,shipped,delivered,cancelled',
+            'ShippingAddress' => 'sometimes|required|string',
+            'PaymentMethod' => 'sometimes|required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $order = Order::find($id);
+            
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+            }
+
+            $order->update($request->all());
+
+            return response()->json([
+                'success' => true,
+                'data' => $order->fresh()->load(['orderDetails.book', 'user']),
+                'message' => 'Order updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            $order = Order::find($id);
+            
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+            }
+
+            if ($order->Status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending orders can be deleted'
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            // Restore stock quantities
+            foreach ($order->orderDetails as $detail) {
+                $book = Book::find($detail->BookID);
+                $book->update([
+                    'StockQuantity' => $book->StockQuantity + $detail->Quantity
+                ]);
+            }
+
+            // Delete order and details
+            $order->orderDetails()->delete();
+            $order->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete order: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

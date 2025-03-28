@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\BookController;
 use App\Http\Controllers\API\BookDetailController;
+use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,8 +40,30 @@ Route::prefix('book-details')->group(function () {
     Route::get('/book/{bookId}', [BookDetailController::class, 'getByBookId']);
 });
 
-// Keep existing category routes
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/categories/{id}', [CategoryController::class, 'show']);
-Route::get('/categories/{id}/books', [CategoryController::class, 'books']);
-Route::post('/categories', [CategoryController::class, 'store']);
+// Category CRUD routes
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index']);
+    Route::post('/', [CategoryController::class, 'store']);
+    Route::get('/{id}', [CategoryController::class, 'show']);
+    Route::put('/{id}', [CategoryController::class, 'update']);
+    Route::delete('/{id}', [CategoryController::class, 'destroy']);
+    Route::get('/{id}/books', [CategoryController::class, 'books']);
+});
+
+// Order CRUD routes
+Route::prefix('orders')->group(function () {
+    Route::get('/', [OrderController::class, 'index']);
+    Route::post('/', [OrderController::class, 'store']);
+    Route::get('/{id}', [OrderController::class, 'show']);
+    Route::put('/{id}', [OrderController::class, 'update']);
+    Route::delete('/{id}', [OrderController::class, 'destroy']);
+});
+
+// User CRUD routes
+Route::prefix('users')->group(function () {
+    Route::get('/', [UserController::class, 'index']);
+    Route::post('/', [UserController::class, 'store']);
+    Route::get('/{id}', [UserController::class, 'show']);
+    Route::put('/{id}', [UserController::class, 'update']);
+    Route::delete('/{id}', [UserController::class, 'destroy']);
+});
