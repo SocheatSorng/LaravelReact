@@ -83,8 +83,7 @@ class BookController extends Controller
             'Author' => 'required|string|max:100',
             'Price' => 'required|numeric|min:0',
             'StockQuantity' => 'nullable|integer|min:0',
-            'Image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            // Book detail validation if needed
+            'Image' => 'nullable',  // Accept both files and strings
             'ISBN10' => 'nullable|string|max:10',
             'ISBN13' => 'nullable|string|max:17',
             'Publisher' => 'nullable|string|max:255',
@@ -98,7 +97,7 @@ class BookController extends Controller
             'Description' => 'nullable|string',
         ]);
 
-                if ($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
@@ -132,6 +131,10 @@ class BookController extends Controller
                 ]);
                 
                 $imageUrl = $result['ObjectURL'];
+            }
+            // Handle image URL provided as a string
+            elseif ($request->has('Image') && is_string($request->Image)) {
+                $imageUrl = $request->Image;
             }
 
             // Create the book
@@ -202,7 +205,7 @@ class BookController extends Controller
             'Author' => 'sometimes|required|string|max:100',
             'Price' => 'sometimes|required|numeric|min:0',
             'StockQuantity' => 'nullable|integer|min:0',
-            'Image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'Image' => 'nullable|sometimes',  // Allow strings or files
             // Book detail validation
             'ISBN10' => 'nullable|string|max:10',
             'ISBN13' => 'nullable|string|max:17',
@@ -217,6 +220,13 @@ class BookController extends Controller
             'Description' => 'nullable|string',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
         try {
             $book = Book::find($id);
             
@@ -227,8 +237,9 @@ class BookController extends Controller
                 ], 404);
             }
 
-            // Handle image upload
+            // Handle image updates
             if ($request->hasFile('Image')) {
+                // Handle file upload
                 // Delete old image if it exists
                 if ($book->Image) {
                     $oldKey = $this->getS3KeyFromUrl($book->Image);
@@ -265,22 +276,27 @@ class BookController extends Controller
                 
                 $result = $s3->putObject([
                     'Bucket' => env('AWS_BUCKET'),
-                    'Key' => 'books/' . $filename,
+                    'Key' => 'Picture/' . $filename,
                     'SourceFile' => $image->getRealPath(),
                     'ContentType' => $image->getMimeType(),
                     'ACL' => 'public-read',
                 ]);
                 
                 $book->Image = $result['ObjectURL'];
+            } 
+            // Handle image URL provided as a string
+            elseif ($request->has('Image') && is_string($request->Image)) {
+                $book->Image = $request->Image;
             }
 
-            // Update book data
+            // Update other book data
             $bookFields = ['CategoryID', 'Title', 'Author', 'Price', 'StockQuantity'];
             foreach ($bookFields as $field) {
                 if ($request->has($field)) {
                     $book->$field = $request->$field;
                 }
             }
+            
             $book->save();
             
             // Update book details if provided
