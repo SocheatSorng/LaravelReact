@@ -50,13 +50,13 @@ function SidebarMenu() {
           </Link>
         </li>
 
-        {/* Book Details */}
+        {/* Users */}
         <li className="nav-item">
-          <Link to="/books" className={`nav-link ${isActive('/books') ? 'active' : ''}`}>
+          <Link to="/users" className={`nav-link ${isActive('/users') ? 'active' : ''}`}>
             <span className="nav-icon">
-              <span className="fs-24 align-middle">📚</span>
+              <span className="fs-24 align-middle">👥</span>
             </span>
-            <span className="nav-text">Book Details</span>
+            <span className="nav-text">Users</span>
           </Link>
         </li>
       </ul>
