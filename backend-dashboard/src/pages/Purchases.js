@@ -1,39 +1,39 @@
 import React from 'react';
 import StatCard from '../components/common/StatCard';
 import SearchBar from '../components/common/SearchBar';
-import ProductTableHeader from '../components/products/ProductTableHeader';
-import ProductTableBody from '../components/products/ProductTableBody';
-import ProductPagination from '../components/products/ProductPagination';
+import PurchaseTableHeader from '../components/purchases/PurchaseTableHeader';
+import PurchaseTableBody from '../components/purchases/PurchaseTableBody';
+import PurchasePagination from '../components/purchases/PurchasePagination';
 
-function Products() {
+function Purchases() {
   return (
     <div className="container-xxl">
       <div className="row mb-4">
         <div className="col-12">
-          <h4 className="fw-bold py-3 mb-2">Products</h4>
+          <h4 className="fw-bold py-3 mb-2">Purchases</h4>
         </div>
       </div>
 
       <div className="row mb-4">
         <StatCard 
-          title="Total Products"
-          count="1,530"
-          icon="👕"
+          title="Total Purchases"
+          count="2,380"
+          icon="💳"
         />
         <StatCard 
-          title="Active Products"
-          count="1,260"
+          title="Pending"
+          count="120"
+          icon="⏳"
+        />
+        <StatCard 
+          title="Completed"
+          count="1,950"
           icon="✅"
         />
         <StatCard 
-          title="Out of Stock"
-          count="240"
-          icon="⚠️"
-        />
-        <StatCard 
-          title="Low Stock"
-          count="30"
-          icon="📉"
+          title="Cancelled"
+          count="310"
+          icon="❌"
         />
       </div>
 
@@ -41,25 +41,25 @@ function Products() {
         <div className="col-12">
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
-              <h5 className="card-title mb-0">All Products List</h5>
+              <h5 className="card-title mb-0">All Purchases</h5>
               <div className="d-flex gap-2">
-                <SearchBar placeholder="Search products..." width="200px" />
+                <SearchBar placeholder="Search purchases..." width="200px" />
                 <button className="btn btn-primary btn-sm">
                   <span className="align-middle me-1">+</span>
-                  Add Product
+                  Add Purchase
                 </button>
               </div>
             </div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover">
-                  <ProductTableHeader />
-                  <ProductTableBody />
+                  <PurchaseTableHeader />
+                  <PurchaseTableBody />
                 </table>
               </div>
             </div>
             <div className="card-footer">
-              <ProductPagination 
+              <PurchasePagination 
                 showing={10} 
                 total={100} 
                 currentPage={1}
@@ -72,4 +72,4 @@ function Products() {
   );
 }
 
-export default Products;
+export default Purchases;

@@ -19,7 +19,7 @@ function ProductTableBody() {
         count: 55
       }
     },
-    // Add more products as needed
+    // Add more products...
   ];
 
   return (

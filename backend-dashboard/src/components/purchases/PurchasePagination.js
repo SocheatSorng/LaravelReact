@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ProductPagination({ showing, total, currentPage }) {
+function PurchasePagination({ showing, total, currentPage }) {
   return (
     <div className="d-flex justify-content-between align-items-center">
       <div>
@@ -29,4 +29,4 @@ function ProductPagination({ showing, total, currentPage }) {
   );
 }
 
-export default ProductPagination;
+export default PurchasePagination;

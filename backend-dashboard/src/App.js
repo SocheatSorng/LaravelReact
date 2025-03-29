@@ -9,6 +9,8 @@ import OrderDetails from './components/orders/OrderDetails';
 import OrderCart from './components/orders/OrderCart';
 import OrderCheckout from './components/orders/OrderCheckout';
 import Products from './pages/Products';
+import Purchases from './pages/Purchases';
+import BookDetail from './pages/BookDetail';
 
 function App() {
   // Add CSS files from public folder
@@ -45,7 +47,9 @@ function App() {
               <Route path="/orders/details" element={<OrderDetails />} />
               <Route path="/orders/cart" element={<OrderCart />} />
               <Route path="/orders/checkout" element={<OrderCheckout />} />
-              <Route path="/products" element={<Products />} /> {/* Add this line */}
+              <Route path="/products" element={<Products />} />
+              <Route path="/purchases" element={<Purchases />} />
+              <Route path="/books" element={<BookDetail />} />
             </Routes>
           </div>
         </div>

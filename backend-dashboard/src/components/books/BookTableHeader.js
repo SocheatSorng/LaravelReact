@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ProductTableHeader() {
+function BookTableHeader() {
   return (
     <thead className="bg-light-subtle">
       <tr>
@@ -10,15 +10,16 @@ function ProductTableHeader() {
             <label className="form-check-label" htmlFor="selectAll"></label>
           </div>
         </th>
-        <th>Product Name & Size</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th>Category</th>
-        <th>Rating</th>
-        <th>Actions</th>
+        <th>ID</th>
+        <th>Variant</th>
+        <th>Value</th>
+        <th>Option</th>
+        <th>Created On</th>
+        <th>Published</th>
+        <th>Action</th>
       </tr>
     </thead>
   );
 }
 
-export default ProductTableHeader;
+export default BookTableHeader;

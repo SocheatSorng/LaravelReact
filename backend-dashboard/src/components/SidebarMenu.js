@@ -49,6 +49,16 @@ function SidebarMenu() {
             <span className="nav-text">Purchases</span>
           </Link>
         </li>
+
+        {/* Book Details */}
+        <li className="nav-item">
+          <Link to="/books" className={`nav-link ${isActive('/books') ? 'active' : ''}`}>
+            <span className="nav-icon">
+              <span className="fs-24 align-middle">📚</span>
+            </span>
+            <span className="nav-text">Book Details</span>
+          </Link>
+        </li>
       </ul>
     </div>
   );
