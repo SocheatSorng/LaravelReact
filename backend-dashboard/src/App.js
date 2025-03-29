@@ -14,6 +14,8 @@ import BookDetail from "./pages/BookDetail";
 import CreateBook from "./pages/CreateBook";
 import EditBook from "./pages/EditBook";
 import EditBookDetail from "./pages/EditBookDetail";
+import Login from "./pages/Login";
+import Users from './pages/Users';
 
 function App() {
   // Add CSS files from public folder
@@ -39,31 +41,41 @@ function App() {
 
   return (
     <Router>
-      <div className="wrapper">
-        <Header />
-        <Sidebar />
-        <div className="page-content">
-          <div className="container-fluid">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/orders/details" element={<OrderDetails />} />
-              <Route path="/orders/cart" element={<OrderCart />} />
-              <Route path="/orders/checkout" element={<OrderCheckout />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/purchases" element={<Purchases />} />
-              <Route path="/books" element={<BookDetail />} />
-              <Route path="/books/create" element={<CreateBook />} />
-              <Route path="/books/:id/edit" element={<EditBook />} />
-              <Route path="/books/:id" element={<BookDetail />} />
-              <Route
-                path="/books/:id/edit-detail"
-                element={<EditBookDetail />}
-              />
-            </Routes>
-          </div>
-        </div>
-      </div>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/*"
+          element={
+            <div className="wrapper">
+              <Header />
+              <Sidebar />
+              <div className="page-content">
+                <div className="container-fluid">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="orders/details" element={<OrderDetails />} />
+                    <Route path="orders/cart" element={<OrderCart />} />
+                    <Route path="orders/checkout" element={<OrderCheckout />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="purchases" element={<Purchases />} />
+                    <Route path="books" element={<BookDetail />} />
+                    <Route path="books/create" element={<CreateBook />} />
+                    <Route path="books/:id/edit" element={<EditBook />} />
+                    <Route path="books/:id" element={<BookDetail />} />
+                    <Route
+                      path="books/:id/edit-detail"
+                      element={<EditBookDetail />}
+                    />
+                    <Route path="users" element={<Users />} />
+                  </Routes>
+                </div>
+              </div>
+              <Footer />
+            </div>
+          }
+        />
+      </Routes>
     </Router>
   );
 }
