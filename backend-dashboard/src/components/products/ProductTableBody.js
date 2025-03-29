@@ -1,4 +1,5 @@
 import React from 'react';
+import ProductActions from './ProductActions';
 
 function ProductTableBody() {
   const products = [
@@ -54,7 +55,7 @@ function ProductTableBody() {
           <td>{product.category}</td>
           <td>
             <span className="badge p-1 bg-light text-dark fs-12 me-1">
-              <i className="bx bxs-star align-text-top fs-14 text-warning me-1"></i>
+              <span className="align-middle text-warning me-1">⭐</span>
               {product.rating.score}
             </span>
             {product.rating.count} Review
