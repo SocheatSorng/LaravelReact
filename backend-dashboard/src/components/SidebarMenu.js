@@ -1,21 +1,54 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 function SidebarMenu() {
+  const location = useLocation();
+  const isActive = (path) => location.pathname === path;
+
   return (
     <div className="scrollbar" data-simplebar>
       <ul className="navbar-nav" id="navbar-nav">
         <li className="menu-title">General</li>
 
+        {/* Dashboard */}
         <li className="nav-item">
-          <a className="nav-link" href="/">
+          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
             <span className="nav-icon">
-              <i className="solar:widget-5-bold-duotone"></i>
+              <span className="fs-24 align-middle">📊</span>
             </span>
             <span className="nav-text">Dashboard</span>
-          </a>
+          </Link>
         </li>
 
-        {/* Add more menu items as needed */}
+        {/* Orders */}
+        <li className="nav-item">
+          <Link to="/orders" className={`nav-link ${isActive('/orders') ? 'active' : ''}`}>
+            <span className="nav-icon">
+              <span className="fs-24 align-middle">🛍️</span>
+            </span>
+            <span className="nav-text">Orders</span>
+          </Link>
+        </li>
+
+        {/* Products */}
+        <li className="nav-item">
+          <Link to="/products" className={`nav-link ${isActive('/products') ? 'active' : ''}`}>
+            <span className="nav-icon">
+              <span className="fs-24 align-middle">👕</span>
+            </span>
+            <span className="nav-text">Products</span>
+          </Link>
+        </li>
+
+        {/* Purchases */}
+        <li className="nav-item">
+          <Link to="/purchases" className={`nav-link ${isActive('/purchases') ? 'active' : ''}`}>
+            <span className="nav-icon">
+              <span className="fs-24 align-middle">💳</span>
+            </span>
+            <span className="nav-text">Purchases</span>
+          </Link>
+        </li>
       </ul>
     </div>
   );

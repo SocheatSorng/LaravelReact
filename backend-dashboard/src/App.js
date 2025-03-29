@@ -1,21 +1,27 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import UserMenu from './components/UserMenu';
 import SidebarMenu from './components/SidebarMenu';
 import Dashboard from './components/Dashboard';
+import Orders from './pages/Orders';
+import OrderDetails from './components/orders/OrderDetails';
+import OrderCart from './components/orders/OrderCart';
+import OrderCheckout from './components/orders/OrderCheckout';
+import Products from './pages/Products';
 
 function App() {
-  // Add CSS and JS files from public folder
+  // Add CSS files from public folder
   React.useEffect(() => {
     // Add vendor CSS
     const linkVendor = document.createElement('link');
-    linkVendor.href = `${process.env.PUBLIC_URL}/assets/css/vendor.min.css`;
+    linkVendor.href = '/assets/css/vendor.min.css';
     linkVendor.rel = 'stylesheet';
     document.head.appendChild(linkVendor);
 
     // Add app CSS  
     const linkApp = document.createElement('link');
-    linkApp.href = `${process.env.PUBLIC_URL}/assets/css/app.min.css`;
+    linkApp.href = '/assets/css/app.min.css';
     linkApp.rel = 'stylesheet';
     document.head.appendChild(linkApp);
 
@@ -27,11 +33,24 @@ function App() {
   }, []);
 
   return (
-    <div className="wrapper">
-      <Header />
-      <Sidebar />
-      <PageContent />
-    </div>
+    <Router>
+      <div className="wrapper">
+        <Header />
+        <Sidebar />
+        <div className="page-content">
+          <div className="container-fluid">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/orders/details" element={<OrderDetails />} />
+              <Route path="/orders/cart" element={<OrderCart />} />
+              <Route path="/orders/checkout" element={<OrderCheckout />} />
+              <Route path="/products" element={<Products />} /> {/* Add this line */}
+            </Routes>
+          </div>
+        </div>
+      </div>
+    </Router>
   );
 }
 
@@ -44,7 +63,7 @@ function Header() {
           <div className="d-flex align-items-center">
             <div className="topbar-item">
               <button type="button" className="button-toggle-menu me-2">
-                <i className="solar:hamburger-menu-broken fs-24 align-middle"></i>
+                <span className="fs-24 align-middle">☰</span>
               </button>
             </div>
             <div className="topbar-item">
@@ -65,32 +84,18 @@ function Sidebar() {
       <div className="logo-box">
         <a href="/" className="logo-dark">
           <img 
-            src={`${process.env.PUBLIC_URL}/assets/images/logo-sm.png`}
+            src="/assets/images/logo-sm.png"
             className="logo-sm" 
             alt="logo sm" 
           />
           <img 
-            src={`${process.env.PUBLIC_URL}/assets/images/logo-dark.png`}
+            src="/assets/images/logo-dark.png"
             className="logo-lg"
             alt="logo dark"
           />
         </a>
       </div>
       <SidebarMenu />
-    </div>
-  );
-}
-
-// Page Content Component
-function PageContent() {
-  return (
-    <div className="page-content">
-      <div className="container-fluid">
-        <div className="row">
-          <Dashboard />
-        </div>
-      </div>
-      <Footer />
     </div>
   );
 }
