@@ -8,11 +8,11 @@ use App\Models\BookDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
-class BookController extends Controller
-{
+    class BookController extends Controller
+    {
     public function index(Request $request)
     {
         try {
@@ -57,9 +57,54 @@ class BookController extends Controller
             $perPage = $request->get('per_page', 15);
             $books = $query->paginate($perPage);
             
+            // Get the paginated items
+            $booksArray = $books->items();
+            
+            // Create S3 client
+            $s3 = new \Aws\S3\S3Client([
+                'version' => 'latest',
+                'region' => env('AWS_DEFAULT_REGION'),
+                'credentials' => [
+                    'key' => env('AWS_ACCESS_KEY_ID'),
+                    'secret' => env('AWS_SECRET_ACCESS_KEY'),
+                ],
+            ]);
+            
+            // Generate pre-signed URLs for each book's image
+            foreach ($booksArray as $book) {
+                if (!empty($book->Image) && strpos($book->Image, 's3.') !== false) {
+                    try {
+                        // Extract the key from the URL
+                        $parsedUrl = parse_url($book->Image);
+                        $path = ltrim($parsedUrl['path'], '/');
+                        
+                        // If the path contains the bucket name, remove it
+                        $bucketName = env('AWS_BUCKET');
+                        if (strpos($path, $bucketName . '/') === 0) {
+                            $path = substr($path, strlen($bucketName) + 1);
+                        }
+                        
+                        // Generate pre-signed URL (valid for 1 hour)
+                        $command = $s3->getCommand('GetObject', [
+                            'Bucket' => $bucketName,
+                            'Key' => $path,
+                        ]);
+                        
+                        $request = $s3->createPresignedRequest($command, '+1 hour');
+                        $presignedUrl = (string) $request->getUri();
+                        
+                        // Replace the original URL with the pre-signed URL
+                        $book->Image = $presignedUrl;
+                    } catch (\Exception $e) {
+                        // Log error but continue processing
+                        Log::error('Failed to generate pre-signed URL: ' . $e->getMessage());
+                    }
+                }
+            }
+            
             return response()->json([
                 'success' => true,
-                'data' => $books->items(),
+                'data' => $booksArray,
                 'meta' => [
                     'total' => $books->total(),
                     'per_page' => $books->perPage(),
@@ -73,7 +118,7 @@ class BookController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
-   }
+    }
    
 
     public function store(Request $request)
