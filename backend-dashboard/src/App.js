@@ -1,30 +1,33 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
-import UserMenu from './components/UserMenu';
-import SidebarMenu from './components/SidebarMenu';
-import Dashboard from './components/Dashboard';
-import Orders from './pages/Orders';
-import OrderDetails from './components/orders/OrderDetails';
-import OrderCart from './components/orders/OrderCart';
-import OrderCheckout from './components/orders/OrderCheckout';
-import Products from './pages/Products';
-import Purchases from './pages/Purchases';
-import BookDetail from './pages/BookDetail';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css";
+import UserMenu from "./components/UserMenu";
+import SidebarMenu from "./components/SidebarMenu";
+import Dashboard from "./components/Dashboard";
+import Orders from "./pages/Orders";
+import OrderDetails from "./components/orders/OrderDetails";
+import OrderCart from "./components/orders/OrderCart";
+import OrderCheckout from "./components/orders/OrderCheckout";
+import Products from "./pages/Products";
+import Purchases from "./pages/Purchases";
+import BookDetail from "./pages/BookDetail";
+import CreateBook from "./pages/CreateBook";
+import EditBook from "./pages/EditBook";
+import EditBookDetail from "./pages/EditBookDetail";
 
 function App() {
   // Add CSS files from public folder
   React.useEffect(() => {
     // Add vendor CSS
-    const linkVendor = document.createElement('link');
-    linkVendor.href = '/assets/css/vendor.min.css';
-    linkVendor.rel = 'stylesheet';
+    const linkVendor = document.createElement("link");
+    linkVendor.href = "/assets/css/vendor.min.css";
+    linkVendor.rel = "stylesheet";
     document.head.appendChild(linkVendor);
 
-    // Add app CSS  
-    const linkApp = document.createElement('link');
-    linkApp.href = '/assets/css/app.min.css';
-    linkApp.rel = 'stylesheet';
+    // Add app CSS
+    const linkApp = document.createElement("link");
+    linkApp.href = "/assets/css/app.min.css";
+    linkApp.rel = "stylesheet";
     document.head.appendChild(linkApp);
 
     // Remove links on unmount
@@ -50,6 +53,13 @@ function App() {
               <Route path="/products" element={<Products />} />
               <Route path="/purchases" element={<Purchases />} />
               <Route path="/books" element={<BookDetail />} />
+              <Route path="/books/create" element={<CreateBook />} />
+              <Route path="/books/:id/edit" element={<EditBook />} />
+              <Route path="/books/:id" element={<BookDetail />} />
+              <Route
+                path="/books/:id/edit-detail"
+                element={<EditBookDetail />}
+              />
             </Routes>
           </div>
         </div>
@@ -71,7 +81,9 @@ function Header() {
               </button>
             </div>
             <div className="topbar-item">
-              <h4 className="fw-bold topbar-button pe-none text-uppercase mb-0">Welcome!</h4>
+              <h4 className="fw-bold topbar-button pe-none text-uppercase mb-0">
+                Welcome!
+              </h4>
             </div>
           </div>
           <UserMenu />
@@ -81,18 +93,18 @@ function Header() {
   );
 }
 
-// Sidebar Component 
+// Sidebar Component
 function Sidebar() {
   return (
     <div className="main-nav">
       <div className="logo-box">
         <a href="/" className="logo-dark">
-          <img 
+          <img
             src="/assets/images/logo-sm.png"
-            className="logo-sm" 
-            alt="logo sm" 
+            className="logo-sm"
+            alt="logo sm"
           />
-          <img 
+          <img
             src="/assets/images/logo-dark.png"
             className="logo-lg"
             alt="logo dark"
