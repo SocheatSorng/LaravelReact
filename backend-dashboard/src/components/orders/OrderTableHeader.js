@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 function OrderTableHeader() {
   return (
@@ -7,7 +7,7 @@ function OrderTableHeader() {
         <th>Order ID</th>
         <th>Date</th>
         <th>Customer</th>
-        <th>Total</th>
+        <th>Total Amount</th>
         <th>Status</th>
         <th>Actions</th>
       </tr>
