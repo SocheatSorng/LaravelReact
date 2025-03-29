@@ -7,10 +7,16 @@ export const fetchProducts = async () => {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    const result = await response.json();
+
+    // Return the data in the expected format
+    if (result.success && result.data) {
+      return result;
+    } else {
+      return { data: [] };
+    }
   } catch (error) {
     console.error("Error fetching books:", error);
-    return [];
+    return { data: [] };
   }
 };

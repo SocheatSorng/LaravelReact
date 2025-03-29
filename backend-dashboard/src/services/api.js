@@ -27,9 +27,17 @@ const api = axios.create({
   timeout: 10000, // Set a timeout for requests
 });
 
-// Request interceptor for logging and handling
+// Request interceptor for adding auth token
 api.interceptors.request.use(
   (config) => {
+    // Get the token from local storage
+    const token = localStorage.getItem("auth_token");
+
+    // If token exists, add it to the headers
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+
     console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
     return config;
   },
@@ -51,6 +59,18 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response) {
+      // Handle 401 Unauthorized errors by logging out
+      if (error.response.status === 401) {
+        // Clear auth data from local storage
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("auth_user");
+
+        // Redirect to login page if not already there
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      }
+
       console.error(`API Error ${error.response.status}:`, error.response.data);
     } else if (error.request) {
       console.error("API No Response Error:", error.request);
@@ -60,6 +80,81 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Authentication service
+export const authService = {
+  // User login
+  login: async (email, password) => {
+    try {
+      const response = await api.post("/login", { email, password });
+
+      // Store token and user in local storage
+      if (response.data.success && response.data.token) {
+        localStorage.setItem("auth_token", response.data.token);
+        localStorage.setItem("auth_user", JSON.stringify(response.data.user));
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  },
+
+  // User logout
+  logout: async () => {
+    try {
+      // Call the logout API endpoint
+      await api.post("/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Always clear local storage data regardless of API success/failure
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+    }
+  },
+
+  // Get current authenticated user
+  getCurrentUser: async () => {
+    try {
+      // First try to get from local storage for faster response
+      const userStr = localStorage.getItem("auth_user");
+
+      if (userStr) {
+        return { success: true, user: JSON.parse(userStr) };
+      }
+
+      // If not in local storage, fetch from API
+      const response = await api.get("/me");
+
+      // Update local storage
+      if (response.data.success && response.data.user) {
+        localStorage.setItem("auth_user", JSON.stringify(response.data.user));
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Get current user error:", error);
+      throw error;
+    }
+  },
+
+  // Check if user is authenticated
+  isAuthenticated: () => {
+    return !!localStorage.getItem("auth_token");
+  },
+
+  // Get user role
+  getUserRole: () => {
+    const userStr = localStorage.getItem("auth_user");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user.role;
+    }
+    return null;
+  },
+};
 
 export const orderService = {
   // Get all orders with optional filters

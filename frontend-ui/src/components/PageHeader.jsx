@@ -1,16 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import shopBanner from "../assets/images/banner/banner-shop.jpg";
 
 const getBackgroundImage = (curPage) => {
   const images = {
-    Shop: "https://images.pexels.com/photos/3965557/pexels-photo-3965557.jpeg?auto=compress&cs=tinysrgb&w=1200", // New shop interior image
-    Blog: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200",
+    Shop: shopBanner, // Using local image file
+    Blog: "https://images.pexels.com/photos/590493/pexels-photo-590493.jpeg?auto=compress&cs=tinysrgb&w=1200", // Book-related image
     About:
-      "https://cdn.pixabay.com/photo/2015/01/09/11/08/startup-594090_1280.jpg",
+      "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1200", // Bookstore interior
     Contact:
-      "https://images.pexels.com/photos/1416530/pexels-photo-1416530.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1200", // Bookstore interior
     "Single Product":
-      "https://cdn.pixabay.com/photo/2016/11/22/21/57/apparel-1850804_1280.jpg",
+      "https://images.pexels.com/photos/1370295/pexels-photo-1370295.jpeg?auto=compress&cs=tinysrgb&w=1200", // Open book
   };
   return images[curPage] || images.Shop;
 };

@@ -11,6 +11,7 @@ use App\Http\Controllers\API\OrderDetailController;
 use App\Http\Controllers\API\PurchaseController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\WishlistController;
+use App\Http\Controllers\API\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +24,10 @@ use App\Http\Controllers\API\WishlistController;
 |
 */
 
+// Authentication routes
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
+Route::get('/me', [AuthController::class, 'me']);
 
 // Books CRUD routes
 Route::prefix('books')->group(function () {

@@ -2,57 +2,71 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 const ProductDisplay = ({ item }) => {
-  const { title, id, price, brand, stock, description, images } = item;
+  const { title, id, price, brand, stock, description, BookID } = item;
   const [prequantity, setQuantity] = useState(1);
   const [coupon, setCoupon] = useState("");
+  const [addedToCart, setAddedToCart] = useState(false);
 
   const handleIncrease = () => {
     setQuantity(prequantity + 1);
   };
 
   const handleDecrease = () => {
-    if (prequantity > 0) {
+    if (prequantity > 1) {
       setQuantity(prequantity - 1);
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const product = {
-      id: id,
-      img: images,
-      name: title,
-      price: price,
-      quantity: prequantity,
-      coupon: coupon,
-    };
+    try {
+      // Ensure price is stored as a number
+      const numericPrice = parseFloat(price);
 
-    // Retrieve cart from local storage or initialize a new one
-    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+      // Create product with parsed values
+      const product = {
+        id: id,
+        BookID: BookID, // Store BookID for image
+        name: title,
+        price: numericPrice,
+        quantity: prequantity,
+        coupon: coupon,
+      };
 
-    const existingProductIndex = existingCart.findIndex(
-      (item) => item.id === id
-    );
+      // Retrieve cart from local storage or initialize a new one
+      const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    if (existingProductIndex !== -1) {
-      existingCart[existingProductIndex].quantity += prequantity;
-    } else {
-      existingCart.push(product);
+      const existingProductIndex = existingCart.findIndex(
+        (item) => item.id === id
+      );
+
+      if (existingProductIndex !== -1) {
+        existingCart[existingProductIndex].quantity += prequantity;
+      } else {
+        existingCart.push(product);
+      }
+
+      // Update local storage
+      localStorage.setItem("cart", JSON.stringify(existingCart));
+
+      // Reset form fields
+      setQuantity(1);
+      setCoupon("");
+
+      // Show success message
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 3000);
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+      alert("There was an error adding the product to your cart.");
     }
-
-    // Update local storage
-    localStorage.setItem("cart", JSON.stringify(existingCart));
-
-    // Reset form fields
-    setQuantity(1);
-    setCoupon("");
   };
 
   return (
     <div>
       <div>
         <h4>{title}</h4>
-        <h4>${price}</h4>
+        <h4>${parseFloat(price).toFixed(2)}</h4>
         <h6>{brand}</h6>
         <p>{description}</p>
       </div>
@@ -75,7 +89,9 @@ const ProductDisplay = ({ item }) => {
                     name="qtybutton"
                     id="qtybutton"
                     value={prequantity}
-                    onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
+                    onChange={(e) =>
+                      setQuantity(parseInt(e.target.value, 10) || 1)
+                    }
                   />
                   <div className="inc qtybutton" onClick={handleIncrease}>
                     +
@@ -95,6 +111,13 @@ const ProductDisplay = ({ item }) => {
               />
             </div>
           </div>
+
+          {/* Success message */}
+          {addedToCart && (
+            <div className="alert alert-success mb-3" role="alert">
+              Book added to cart successfully!
+            </div>
+          )}
 
           {/* Button section */}
           <button type="submit" className="lab-btn">
