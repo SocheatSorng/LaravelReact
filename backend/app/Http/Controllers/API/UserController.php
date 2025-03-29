@@ -98,7 +98,7 @@ class UserController extends Controller
     public function show($id)
     {
         try {
-            $user = User::with(['orders', 'reviews'])->find($id);
+            $user = User::with(['orders'])->find($id);
 
             if (!$user) {
                 return response()->json([

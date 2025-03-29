@@ -16,7 +16,181 @@ import EditBook from "./pages/EditBook";
 import EditBookDetail from "./pages/EditBookDetail";
 import Login from "./pages/Login";
 import Users from "./pages/Users";
+import CreateUser from "./pages/CreateUser";
+import EditUser from "./pages/EditUser";
+import ViewUser from "./pages/ViewUser";
+import TestUser from "./pages/TestUser";
 import ProtectedRoute from "./components/ProtectedRoute";
+import axios from "axios";
+import { checkApiHealth } from "./services/api";
+
+// API Test Component
+function TestAPI() {
+  const [testResult, setTestResult] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+  const [healthCheckResult, setHealthCheckResult] = React.useState(null);
+
+  const testApi = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await axios.get("http://localhost:8000/api/users");
+      setTestResult(JSON.stringify(response.data, null, 2));
+    } catch (err) {
+      console.error("API Test Error:", err);
+      setError(
+        `Error: ${err.message}. ${
+          err.response
+            ? "Status: " +
+              err.response.status +
+              ", Data: " +
+              JSON.stringify(err.response.data)
+            : ""
+        }`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const runHealthCheck = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const result = await checkApiHealth();
+      setHealthCheckResult(result);
+      if (!result.success) {
+        setError(`API Health Check Failed: ${result.message}`);
+      }
+    } catch (err) {
+      console.error("Health Check Error:", err);
+      setError(`Health Check Error: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="container mt-5">
+      <h2>API Connection Test</h2>
+      <p>
+        Use these tools to check if your React app can connect to the Laravel
+        backend API.
+      </p>
+
+      <div className="row mb-4">
+        <div className="col-md-6">
+          <div className="card">
+            <div className="card-header">Direct API Test</div>
+            <div className="card-body">
+              <button
+                className="btn btn-primary mb-3"
+                onClick={testApi}
+                disabled={isLoading}
+              >
+                {isLoading ? "Testing..." : "Test Direct API Connection"}
+              </button>
+              <p className="text-muted small">
+                This tests a direct connection to
+                http://localhost:8000/api/users without using the configured API
+                client.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6">
+          <div className="card">
+            <div className="card-header">API Health Check</div>
+            <div className="card-body">
+              <button
+                className="btn btn-success mb-3"
+                onClick={runHealthCheck}
+                disabled={isLoading}
+              >
+                {isLoading ? "Checking..." : "Run API Health Check"}
+              </button>
+              <p className="text-muted small">
+                This uses the configured API client with all middleware to test
+                the API.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      {healthCheckResult && (
+        <div
+          className={`card mb-4 ${
+            healthCheckResult.success ? "border-success" : "border-danger"
+          }`}
+        >
+          <div
+            className={`card-header ${
+              healthCheckResult.success
+                ? "bg-success text-white"
+                : "bg-danger text-white"
+            }`}
+          >
+            API Health Check Result
+          </div>
+          <div className="card-body">
+            <p>
+              <strong>Status:</strong>{" "}
+              {healthCheckResult.success ? "Healthy" : "Unhealthy"}
+            </p>
+            <p>
+              <strong>Message:</strong> {healthCheckResult.message}
+            </p>
+            <p>
+              <strong>Endpoint:</strong> {healthCheckResult.endpoint}
+            </p>
+            {healthCheckResult.pingTime && (
+              <p>
+                <strong>Response Time:</strong> {healthCheckResult.pingTime}ms
+              </p>
+            )}
+            <pre className="bg-light p-3 mt-3">
+              {JSON.stringify(healthCheckResult, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
+
+      {testResult && (
+        <div className="card">
+          <div className="card-header">Direct API Response</div>
+          <div className="card-body">
+            <pre className="mb-0">{testResult}</pre>
+          </div>
+        </div>
+      )}
+
+      <div className="card mt-4">
+        <div className="card-header">Troubleshooting Steps</div>
+        <div className="card-body">
+          <ol>
+            <li>
+              Ensure Laravel backend is running on port 8000 (php artisan serve)
+            </li>
+            <li>
+              Check Laravel CORS configuration to allow requests from
+              localhost:3000
+            </li>
+            <li>Verify network connectivity between frontend and backend</li>
+            <li>Check browser console for any CORS or network errors</li>
+            <li>
+              Ensure API routes are correctly defined in Laravel routes/api.php
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   // Add CSS files from public folder
@@ -44,6 +218,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/test-api" element={<TestAPI />} />
+        <Route path="/test-user" element={<TestUser />} />
         <Route
           path="/*"
           element={
@@ -73,6 +249,9 @@ function App() {
                         element={<EditBookDetail />}
                       />
                       <Route path="users" element={<Users />} />
+                      <Route path="users/create" element={<CreateUser />} />
+                      <Route path="users/:id/edit" element={<EditUser />} />
+                      <Route path="users/:id" element={<ViewUser />} />
                     </Routes>
                   </div>
                 </div>

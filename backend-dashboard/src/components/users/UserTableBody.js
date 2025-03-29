@@ -1,48 +1,69 @@
-import React from 'react';
-import UserActions from './UserActions';
+import React from "react";
+import UserActions from "./UserActions";
+import { Link } from "react-router-dom";
 
-function UserTableBody() {
-  const users = [
-    {
-      id: 1,
-      name: "Michael A. Miner",
-      avatar: "/assets/images/users/avatar-2.jpg",
-      invoiceId: "#INV2540",
-      status: "Completed",
-      totalAmount: "$4,521",
-      amountDue: "$8,901",
-      dueDate: "07 Jan, 2023",
-      paymentMethod: "Mastercard"
-    },
-    // Add more users...
-  ];
+function UserTableBody({ users = [], onDelete }) {
+  // Fallback empty array if users not provided
+  if (!users || users.length === 0) {
+    return (
+      <tbody>
+        <tr>
+          <td colSpan="8" className="text-center">
+            No users found
+          </td>
+        </tr>
+      </tbody>
+    );
+  }
 
   return (
     <tbody>
-      {users.map(user => (
-        <tr key={user.id}>
+      {users.map((user) => (
+        <tr key={user.UserID}>
           <td>
             <div className="form-check">
-              <input type="checkbox" className="form-check-input" id={`user${user.id}`} />
-              <label className="form-check-label" htmlFor={`user${user.id}`}></label>
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id={`user${user.UserID}`}
+              />
+              <label
+                className="form-check-label"
+                htmlFor={`user${user.UserID}`}
+              ></label>
             </div>
           </td>
+          <td>{user.UserID}</td>
           <td>
-            <img src={user.avatar} className="avatar-sm rounded-circle me-2" alt="" />
-            {user.name}
+            <div className="d-flex align-items-center">
+              <div className="avatar-sm me-2 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center">
+                {user.FirstName?.charAt(0)}
+                {user.LastName?.charAt(0)}
+              </div>
+              <span>
+                {user.FirstName} {user.LastName}
+              </span>
+            </div>
           </td>
-          <td><a href="#!" className="text-body">{user.invoiceId}</a></td>
+          <td>{user.Email}</td>
+          <td>{user.Phone || "-"}</td>
           <td>
-            <span className={`badge ${user.status === 'Completed' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'} py-1 px-2`}>
-              {user.status}
+            <span
+              className={`badge ${
+                user.Role === "admin"
+                  ? "bg-danger-subtle text-danger"
+                  : "bg-success-subtle text-success"
+              } py-1 px-2`}
+            >
+              {user.Role}
             </span>
           </td>
-          <td>{user.totalAmount}</td>
-          <td>{user.amountDue}</td>
-          <td>{user.dueDate}</td>
-          <td>{user.paymentMethod}</td>
+          <td>{new Date(user.CreatedAt).toLocaleDateString()}</td>
           <td>
-            <UserActions />
+            <UserActions
+              userId={user.UserID}
+              onDelete={() => onDelete(user.UserID)}
+            />
           </td>
         </tr>
       ))}

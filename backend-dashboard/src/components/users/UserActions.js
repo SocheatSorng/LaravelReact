@@ -1,15 +1,28 @@
-import React from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
 
-function UserActions() {
+function UserActions({ userId, onDelete }) {
   return (
     <div className="d-flex gap-2">
-      <button className="btn btn-light btn-sm" title="View">
+      <Link
+        to={`/users/${userId}`}
+        className="btn btn-light btn-sm"
+        title="View"
+      >
         <span className="fs-18 align-middle">👁️</span>
-      </button>
-      <button className="btn btn-soft-primary btn-sm" title="Edit">
+      </Link>
+      <Link
+        to={`/users/${userId}/edit`}
+        className="btn btn-soft-primary btn-sm"
+        title="Edit"
+      >
         <span className="fs-18 align-middle">✏️</span>
-      </button>
-      <button className="btn btn-soft-danger btn-sm" title="Delete">
+      </Link>
+      <button
+        className="btn btn-soft-danger btn-sm"
+        title="Delete"
+        onClick={onDelete}
+      >
         <span className="fs-18 align-middle">🗑️</span>
       </button>
     </div>

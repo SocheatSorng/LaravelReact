@@ -658,4 +658,209 @@ function generateMockBooks(count = 10) {
   }));
 }
 
+// API Health Check
+export const checkApiHealth = async () => {
+  try {
+    const testEndpoint = "/users?per_page=1"; // Simple endpoint that should return quickly
+    console.log(`Testing API connection to ${API_URL}${testEndpoint}`);
+
+    const startTime = new Date().getTime();
+    const response = await api.get(testEndpoint, {
+      timeout: 5000,
+      headers: {
+        "X-API-Health-Check": "true",
+      },
+    });
+    const endTime = new Date().getTime();
+
+    const pingTime = endTime - startTime;
+    const success = response.status === 200 && response.data?.success === true;
+
+    return {
+      success,
+      pingTime,
+      status: response.status,
+      endpoint: `${API_URL}${testEndpoint}`,
+      message: success
+        ? `API is healthy (${pingTime}ms)`
+        : "API returned unsuccessful response",
+      data: response.data,
+    };
+  } catch (error) {
+    console.error("API Health Check failed:", error);
+    return {
+      success: false,
+      endpoint: `${API_URL}`,
+      message: `API is not reachable: ${error.message}`,
+      error: {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      },
+    };
+  }
+};
+
+// User service
+export const userService = {
+  getUsers: async (page = 1, perPage = 10, search = "") => {
+    try {
+      console.log(
+        `Fetching users: page=${page}, perPage=${perPage}, search=${search}`
+      );
+      const response = await api.get(
+        `/users?page=${page}&per_page=${perPage}&search=${search}`
+      );
+      console.log("getUsers response:", response.data);
+
+      return {
+        success: response.data.success,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch users",
+      };
+    }
+  },
+
+  getUser: async (id) => {
+    if (!id) {
+      console.error("getUser: No user ID provided");
+      return {
+        success: false,
+        message: "User ID is required",
+      };
+    }
+
+    try {
+      console.log(`Fetching user with ID: ${id}`);
+      const startTime = performance.now();
+
+      // This API call will use our setupProxy.js middleware which handles the Review model error
+      const response = await api.get(`/users/${id}`);
+
+      const endTime = performance.now();
+      console.log(`getUser API call took ${Math.round(endTime - startTime)}ms`);
+
+      if (response.data) {
+        console.log("getUser success:", response.data);
+        return {
+          success: true,
+          data: response.data.data || response.data,
+          message: response.data.message || "User retrieved successfully",
+        };
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      console.error(`Error fetching user ${id}:`, error);
+
+      // Error information
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch user";
+      const statusCode = error.response?.status;
+
+      console.error(`API Error ${statusCode}: ${errorMessage}`);
+
+      return {
+        success: false,
+        message: errorMessage,
+        statusCode,
+      };
+    }
+  },
+
+  createUser: async (userData) => {
+    try {
+      console.log("Creating user with data:", userData);
+      const response = await api.post("/users", userData);
+      console.log("createUser response:", response.data);
+
+      return {
+        success: response.data.success,
+        data: response.data.data,
+        message: response.data.message || "User created successfully",
+      };
+    } catch (error) {
+      console.error("Error creating user:", error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create user",
+      };
+    }
+  },
+
+  updateUser: async (id, userData) => {
+    if (!id) {
+      return {
+        success: false,
+        message: "User ID is required",
+      };
+    }
+
+    try {
+      console.log(`Updating user ${id} with data:`, userData);
+      const response = await api.put(`/users/${id}`, userData);
+      console.log("updateUser response:", response.data);
+
+      return {
+        success: response.data.success,
+        data: response.data.data,
+        message: response.data.message || "User updated successfully",
+      };
+    } catch (error) {
+      console.error(`Error updating user ${id}:`, error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update user",
+      };
+    }
+  },
+
+  deleteUser: async (id) => {
+    if (!id) {
+      return {
+        success: false,
+        message: "User ID is required",
+      };
+    }
+
+    try {
+      console.log(`Deleting user with ID: ${id}`);
+      const response = await api.delete(`/users/${id}`);
+      console.log("deleteUser response:", response.data);
+
+      return {
+        success: response.data.success,
+        message: response.data.message || "User deleted successfully",
+      };
+    } catch (error) {
+      console.error(`Error deleting user ${id}:`, error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to delete user",
+      };
+    }
+  },
+};
+
+// Make sure we also export the API instance as the default
 export default api;
