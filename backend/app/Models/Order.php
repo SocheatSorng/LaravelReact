@@ -16,7 +16,10 @@ class Order extends Model
         'TotalAmount',
         'Status',
         'ShippingAddress',
-        'PaymentMethod'
+        'PaymentMethod',
+        'GuestEmail',
+        'GuestName',
+        'GuestPhone'
     ];
 
     protected $casts = [

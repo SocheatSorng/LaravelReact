@@ -238,8 +238,11 @@ const CartPage = () => {
                     >
                       <input type="submit" value="Update Cart" />
                       <div>
-                        {/* Pass the orderTotal to CheckoutPage */}
-                        <CheckoutPage orderTotal={orderTotal} />
+                        {/* Pass the orderTotal and cartItems to CheckoutPage */}
+                        <CheckoutPage
+                          orderTotal={orderTotal}
+                          cartItems={cartItems}
+                        />
                       </div>
                     </form>
                   </div>

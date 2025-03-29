@@ -236,4 +236,82 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    public function storeGuestOrder(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'GuestName' => 'required|string|max:100',
+            'GuestEmail' => 'required|email|max:100',
+            'GuestPhone' => 'required|string|max:15',
+            'TotalAmount' => 'required|numeric|min:0',
+            'ShippingAddress' => 'required|string',
+            'PaymentMethod' => 'required|string',
+            'items' => 'required|array|min:1',
+            'items.*.BookID' => 'required|exists:tbBook,BookID',
+            'items.*.Quantity' => 'required|integer|min:1',
+            'items.*.Price' => 'required|numeric|min:0'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Create order
+            $order = Order::create([
+                'UserID' => null, // Null for guest orders
+                'GuestName' => $request->GuestName,
+                'GuestEmail' => $request->GuestEmail,
+                'GuestPhone' => $request->GuestPhone,
+                'TotalAmount' => $request->TotalAmount,
+                'Status' => 'pending',
+                'ShippingAddress' => $request->ShippingAddress,
+                'PaymentMethod' => $request->PaymentMethod,
+                'OrderDate' => now() // Set current date/time
+            ]);
+
+            // Create order details
+            foreach ($request->items as $item) {
+                $book = Book::find($item['BookID']);
+                
+                // Check stock
+                if ($book->StockQuantity < $item['Quantity']) {
+                    throw new \Exception("Insufficient stock for book: {$book->Title}");
+                }
+
+                // Create order detail
+                OrderDetail::create([
+                    'OrderID' => $order->OrderID,
+                    'BookID' => $item['BookID'],
+                    'Quantity' => $item['Quantity'],
+                    'Price' => $item['Price']
+                ]);
+
+                // Update stock
+                $book->update([
+                    'StockQuantity' => $book->StockQuantity - $item['Quantity']
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'data' => $order->load('orderDetails.book'),
+                'message' => 'Guest order created successfully'
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create guest order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
