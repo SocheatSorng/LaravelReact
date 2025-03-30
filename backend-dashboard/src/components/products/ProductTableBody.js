@@ -52,7 +52,7 @@ function ProductTableBody({ products = [], onRefresh }) {
               </div>
               <div>
                 <a
-                  href={`/books/${book.BookID}`}
+                  href={`/products/${book.BookID}`}
                   className="text-dark fw-medium fs-15"
                 >
                   {book.Title}

@@ -36,7 +36,7 @@ function Orders() {
       setApiStatus("connected");
       setError(null);
       fetchOrders();
-      calculateStats();
+      fetchOrderStats();
       return;
     }
 
@@ -49,7 +49,7 @@ function Orders() {
       setError(null);
       // If successful, load the data
       fetchOrders();
-      calculateStats();
+      fetchOrderStats();
     } catch (err) {
       console.error("API Connection Test Failed:", err);
       setApiStatus("failed");
@@ -79,9 +79,37 @@ function Orders() {
     // Only fetch if we're connected
     if (apiStatus === "connected") {
       fetchOrders();
-      calculateStats();
     }
   }, [apiStatus, currentPage, perPage, searchTerm, filterStatus, dateRange]);
+
+  const fetchOrderStats = async () => {
+    try {
+      const response = await orderService.getOrderStats();
+      console.log("Order stats response:", response);
+      
+      if (response.success) {
+        const { 
+          totalOrders, 
+          pendingOrders, 
+          processingOrders, 
+          shippedOrders, 
+          deliveredOrders, 
+          cancelledOrders 
+        } = response.data;
+        
+        setStats({
+          total: totalOrders,
+          pending: pendingOrders,
+          processing: processingOrders,
+          shipped: shippedOrders,
+          delivered: deliveredOrders,
+          cancelled: cancelledOrders
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching order statistics:", error);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -148,6 +176,9 @@ function Orders() {
         setTotalItems(0);
         setError("Empty response from API");
       }
+      
+      // After getting orders, fetch the latest stats
+      fetchOrderStats();
     } catch (err) {
       console.error("API Error:", err);
 
@@ -172,115 +203,6 @@ function Orders() {
       setTotalItems(0);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const calculateStats = async () => {
-    try {
-      // If using mock data
-      if (localStorage.getItem("useMockData") === "true") {
-        // Generate counts for mock data
-        const mockResponse = await orderService.getOrders();
-        const mockOrders = mockResponse.data.data;
-
-        const total = mockOrders.length;
-
-        // Count orders by status
-        const statusCounts = {
-          pending: 0,
-          processing: 0,
-          shipped: 0,
-          delivered: 0,
-          cancelled: 0,
-        };
-
-        mockOrders.forEach((order) => {
-          const status = (order.Status || "").toLowerCase();
-          if (statusCounts.hasOwnProperty(status)) {
-            statusCounts[status]++;
-          }
-        });
-
-        setStats({
-          total,
-          ...statusCounts,
-        });
-
-        return;
-      }
-
-      // Regular API handling - simpler approach to avoid making too many API calls
-      // Just get all orders, then count them on the client side
-      try {
-        const response = await orderService.getOrders({ per_page: 100 });
-        console.log("Stats response:", response);
-
-        // Initialize status counts
-        const statusCounts = {
-          pending: 0,
-          processing: 0,
-          shipped: 0,
-          delivered: 0,
-          cancelled: 0,
-        };
-
-        // Extract orders from response, handling different response formats
-        let orders = [];
-        let total = 0;
-
-        if (response.data) {
-          if (response.data.data) {
-            if (Array.isArray(response.data.data)) {
-              orders = response.data.data;
-              total = response.data.total || orders.length;
-            } else if (
-              response.data.data.data &&
-              Array.isArray(response.data.data.data)
-            ) {
-              orders = response.data.data.data;
-              total = response.data.data.total || orders.length;
-            }
-          } else if (Array.isArray(response.data)) {
-            orders = response.data;
-            total = orders.length;
-          }
-        }
-
-        // Count orders by status
-        orders.forEach((order) => {
-          const status = (order.Status || "").toLowerCase();
-          if (statusCounts.hasOwnProperty(status)) {
-            statusCounts[status]++;
-          }
-        });
-
-        setStats({
-          total,
-          ...statusCounts,
-        });
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-        // Set empty stats
-        setStats({
-          total: 0,
-          pending: 0,
-          processing: 0,
-          shipped: 0,
-          delivered: 0,
-          cancelled: 0,
-        });
-      }
-    } catch (error) {
-      console.error("Error in calculateStats:", error);
-      // Don't fail the whole component if just stats fail
-      setStats({
-        total: 0,
-        pending: 0,
-        processing: 0,
-        shipped: 0,
-        delivered: 0,
-        cancelled: 0,
-      });
     }
   };
 

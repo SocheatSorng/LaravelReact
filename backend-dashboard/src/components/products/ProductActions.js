@@ -7,17 +7,17 @@ function ProductActions({ id, onRefresh }) {
 
   // View book details
   const handleView = () => {
-    navigate(`/books/${id}`);
+    navigate(`/products/${id}`);
   };
 
   // Edit book
   const handleEdit = () => {
-    navigate(`/books/${id}/edit`);
+    navigate(`/products/${id}/edit`);
   };
 
   // Edit book details
   const handleEditDetails = () => {
-    navigate(`/books/${id}/edit-detail`);
+    navigate(`/products/${id}/edit-detail`);
   };
 
   // Delete book

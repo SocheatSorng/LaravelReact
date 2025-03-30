@@ -11,11 +11,11 @@ function BookTableHeader() {
           </div>
         </th>
         <th>ID</th>
-        <th>Variant</th>
-        <th>Value</th>
-        <th>Option</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Category</th>
         <th>Created On</th>
-        <th>Published</th>
+        <th>Status</th>
         <th>Action</th>
       </tr>
     </thead>

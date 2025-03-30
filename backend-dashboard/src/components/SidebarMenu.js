@@ -33,16 +33,29 @@ function SidebarMenu() {
           </Link>
         </li>
 
-        {/* Products */}
+        {/* Books (renamed from Products) */}
         <li className="nav-item">
           <Link
             to="/products"
             className={`nav-link ${isActive("/products") ? "active" : ""}`}
           >
             <span className="nav-icon">
-              <span className="fs-24 align-middle">👕</span>
+              <span className="fs-24 align-middle">📚</span>
             </span>
-            <span className="nav-text">Products</span>
+            <span className="nav-text">Books</span>
+          </Link>
+        </li>
+
+        {/* Categories (added from old version) */}
+        <li className="nav-item">
+          <Link
+            to="/categories"
+            className={`nav-link ${isActive("/categories") ? "active" : ""}`}
+          >
+            <span className="nav-icon">
+              <span className="fs-24 align-middle">📂</span>
+            </span>
+            <span className="nav-text">Categories</span>
           </Link>
         </li>
 

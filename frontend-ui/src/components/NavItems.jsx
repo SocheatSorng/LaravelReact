@@ -27,18 +27,7 @@ const NavItems = () => {
       <div className={`header-top d-md-none ${socialToggle ? "open" : ""}`}>
         <div className="container">
           <div className="header-top-area">
-            <Link
-              to="/signup"
-              className={`lab-btn me-3 ${!isHomePage && "text-white"}`}
-            >
-              <span>Create Account</span>
-            </Link>
-            <Link
-              to="/login"
-              className={`text-decoration-none ${!isHomePage && "text-white"}`}
-            >
-              Log in
-            </Link>
+            {/* Login/signup buttons removed */}
           </div>
         </div>
       </div>
@@ -112,23 +101,7 @@ const NavItems = () => {
                   </li>
                 </ul>
               </div>
-              {/* sign in & log in */}
-              <Link
-                to="/sign-up"
-                className={`lab-btn me-3 d-none d-md-block ${
-                  !isHomePage && "text-white"
-                }`}
-              >
-                Create Account
-              </Link>
-              <Link
-                to="/login"
-                className={`d-none d-md-block text-decoration-none ${
-                  !isHomePage && "text-white"
-                }`}
-              >
-                Log In
-              </Link>
+              {/* sign in & log in buttons removed */}
 
               {/* menu toggler */}
               <div

@@ -12,6 +12,7 @@ use App\Http\Controllers\API\PurchaseController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\WishlistController;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\PageContentController;
 
 /*
@@ -68,6 +69,7 @@ Route::prefix('orders')->group(function () {
     Route::get('/', [OrderController::class, 'index']);
     Route::post('/', [OrderController::class, 'store']);
     Route::post('/guest', [OrderController::class, 'storeGuestOrder']);
+    Route::get('/stats', [OrderController::class, 'getStats']);
     Route::get('/{id}', [OrderController::class, 'show']);
     Route::put('/{id}', [OrderController::class, 'update']);
     Route::delete('/{id}', [OrderController::class, 'destroy']);
@@ -86,6 +88,7 @@ Route::prefix('order-details')->group(function () {
 Route::prefix('users')->group(function () {
     Route::get('/', [UserController::class, 'index']);
     Route::post('/', [UserController::class, 'store']);
+    Route::get('/stats', [UserController::class, 'getStats']);
     Route::get('/{id}', [UserController::class, 'show']);
     Route::put('/{id}', [UserController::class, 'update']);
     Route::delete('/{id}', [UserController::class, 'destroy']);
@@ -117,6 +120,11 @@ Route::prefix('wishlists')->group(function () {
     Route::delete('/{id}', [WishlistController::class, 'destroy']);
     Route::get('/user/{userId}', [WishlistController::class, 'getUserWishlist']);
     Route::delete('/user/{userId}/clear', [WishlistController::class, 'clearWishlist']);
+});
+
+// Dashboard routes
+Route::prefix('dashboard')->group(function () {
+    Route::get('/stats', [DashboardController::class, 'stats']);
 });
 
 // Page Content CRUD routes

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -165,6 +166,36 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update user: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getStats()
+    {
+        try {
+            // Get admin count
+            $adminCount = User::where('Role', 'admin')->count();
+            
+            // Get new users in the last 30 days
+            $thirtyDaysAgo = Carbon::now()->subDays(30);
+            $newUsersCount = User::where('CreatedAt', '>=', $thirtyDaysAgo)->count();
+            
+            // Get active users count (all users for now)
+            $activeUsersCount = User::count();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'adminCount' => $adminCount,
+                    'newUsersCount' => $newUsersCount,
+                    'activeUsersCount' => $activeUsersCount
+                ],
+                'message' => 'User statistics retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve user statistics: ' . $e->getMessage()
             ], 500);
         }
     }

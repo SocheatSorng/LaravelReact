@@ -314,4 +314,42 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get order statistics
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getStats()
+    {
+        try {
+            // Get total count of all orders
+            $totalOrders = Order::count();
+            
+            // Get count of orders by status
+            $pendingOrders = Order::where('Status', 'pending')->count();
+            $processingOrders = Order::where('Status', 'processing')->count();
+            $shippedOrders = Order::where('Status', 'shipped')->count();
+            $deliveredOrders = Order::where('Status', 'delivered')->count();
+            $cancelledOrders = Order::where('Status', 'cancelled')->count();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'totalOrders' => $totalOrders,
+                    'pendingOrders' => $pendingOrders,
+                    'processingOrders' => $processingOrders,
+                    'shippedOrders' => $shippedOrders,
+                    'deliveredOrders' => $deliveredOrders,
+                    'cancelledOrders' => $cancelledOrders
+                ],
+                'message' => 'Order statistics retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve order statistics: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

@@ -129,33 +129,50 @@ function UserForm({ user, isEditing = false }) {
 
       console.log("Form submission response:", response);
 
-      if (response.data && response.data.success) {
+      if (response.success) {
+        // Navigate to the users list page on success
         navigate("/users");
       } else {
-        setServerError(
-          response.data?.message || "An error occurred while saving the user"
-        );
+        // Handle API response errors
+        setServerError(response.message || "An error occurred while saving the user");
+        
+        // If there are validation errors from the backend
+        if (response.errors) {
+          const serverErrors = {};
+          Object.keys(response.errors).forEach(key => {
+            serverErrors[key] = Array.isArray(response.errors[key]) 
+              ? response.errors[key][0] 
+              : response.errors[key];
+          });
+          setErrors(prev => ({...prev, ...serverErrors}));
+        }
       }
     } catch (err) {
       console.error("Error saving user:", err);
 
+      // Try to extract error message from the error response
+      const errorMessage = err.response?.data?.message 
+        || err.message 
+        || "An unexpected error occurred";
+        
+      setServerError(`Failed to save the user: ${errorMessage}`);
+
       // Handle validation errors from the server
-      if (
-        err.response &&
-        err.response.status === 422 &&
-        err.response.data.errors
-      ) {
-        const serverValidationErrors = {};
-        Object.keys(err.response.data.errors).forEach((key) => {
-          serverValidationErrors[key] = err.response.data.errors[key][0];
-        });
-        setErrors(serverValidationErrors);
-      } else {
-        setServerError(
-          `Failed to save the user: ${
-            err.response?.data?.message || err.message || "Unknown error"
-          }`
-        );
+      if (err.response?.data?.errors) {
+        try {
+          const serverValidationErrors = {};
+          const errorData = err.response.data.errors;
+          
+          Object.keys(errorData).forEach((key) => {
+            serverValidationErrors[key] = Array.isArray(errorData[key])
+              ? errorData[key][0]
+              : errorData[key];
+          });
+          
+          setErrors(prev => ({...prev, ...serverValidationErrors}));
+        } catch (validationErr) {
+          console.error("Error processing validation errors:", validationErr);
+        }
       }
     } finally {
       setLoading(false);

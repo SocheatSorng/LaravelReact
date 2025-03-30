@@ -21,7 +21,7 @@ function SearchBar({ placeholder, width, onSearch }) {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <button type="submit" className="btn btn-light border">
-          <i className="bx bx-search"></i>
+          <i className="bi bi-search"></i>
         </button>
       </div>
     </form>

@@ -1,18 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import BookActions from './BookActions';
+import axios from 'axios';
 
 function BookTableBody() {
-  const books = [
-    {
-      id: "BR-3922",
-      variant: "Brand",
-      value: "Dyson, H&M, Nike, GoPro, Huawei, Rolex, Zara, Thenorthface",
-      option: "Dropdown",
-      createdOn: "10 Sep 2023",
-      published: true
-    },
-    // Add more books as needed
-  ];
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:8000/api/books');
+        setBooks(response.data);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
+  if (loading) {
+    return (
+      <tbody>
+        <tr>
+          <td colSpan="8" className="text-center py-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    );
+  }
+
+  if (books.length === 0) {
+    return (
+      <tbody>
+        <tr>
+          <td colSpan="8" className="text-center py-4">
+            No books found.
+          </td>
+        </tr>
+      </tbody>
+    );
+  }
 
   return (
     <tbody>
@@ -25,23 +59,23 @@ function BookTableBody() {
             </div>
           </td>
           <td>{book.id}</td>
-          <td>{book.variant}</td>
-          <td>{book.value}</td>
-          <td>{book.option}</td>
-          <td>{book.createdOn}</td>
+          <td>{book.variant || book.title}</td>
+          <td>{book.value || book.author}</td>
+          <td>{book.option || book.category}</td>
+          <td>{book.createdOn || book.created_at}</td>
           <td>
             <div className="form-check form-switch">
               <input 
                 className="form-check-input" 
                 type="checkbox" 
                 role="switch" 
-                checked={book.published}
+                checked={book.published || false}
                 readOnly
               />
             </div>
           </td>
           <td>
-            <BookActions />
+            <BookActions bookId={book.id} />
           </td>
         </tr>
       ))}

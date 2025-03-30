@@ -21,10 +21,33 @@ function Users() {
     sort_by: "CreatedAt",
     sort_direction: "desc",
   });
+  const [stats, setStats] = useState({
+    totalAdmins: 0,
+    newUsers: 0,
+    activeUsers: 0
+  });
 
   useEffect(() => {
     fetchUsers();
+    fetchUserStats();
   }, [pagination.current_page, filters]);
+
+  const fetchUserStats = async () => {
+    try {
+      // Get statistics from the backend
+      const response = await userService.getUserStats();
+      
+      if (response.success) {
+        setStats({
+          totalAdmins: response.data.adminCount || 1, // Use 1 as fallback
+          newUsers: response.data.newUsersCount || 0,
+          activeUsers: response.data.activeUsersCount || 0
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching user statistics:", err);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -38,7 +61,8 @@ function Users() {
       );
 
       if (response.success) {
-        setUsers(response.data.data || []);
+        const userData = response.data.data || [];
+        setUsers(userData);
         setPagination({
           current_page: response.data.current_page,
           per_page: response.data.per_page,
@@ -112,7 +136,7 @@ function Users() {
         />
         <StatCard
           title="Admin Users"
-          count="5"
+          count={stats.totalAdmins.toString()}
           icon="🔑"
           trend={{
             value: "0%",
@@ -121,7 +145,7 @@ function Users() {
         />
         <StatCard
           title="New Users (Last 30 Days)"
-          count="12"
+          count={stats.newUsers.toString()}
           icon="🆕"
           trend={{
             value: "8.1%",
@@ -130,7 +154,7 @@ function Users() {
         />
         <StatCard
           title="Active Users"
-          count={pagination.total.toString()}
+          count={stats.activeUsers.toString()}
           icon="✅"
           trend={{
             value: "5.9%",

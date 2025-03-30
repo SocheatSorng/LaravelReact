@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import StatCard from '../components/common/StatCard';
 import SearchBar from '../components/common/SearchBar';
 import BookTableHeader from '../components/books/BookTableHeader';
@@ -6,11 +7,67 @@ import BookTableBody from '../components/books/BookTableBody';
 import BookPagination from '../components/books/BookPagination';
 
 function BookDetail() {
+  const [stats, setStats] = useState({
+    totalBooks: 0,
+    showing: 10,
+    currentPage: 1
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBookStats = async () => {
+      try {
+        setLoading(true);
+        // In a real app, this would be an API call to get book stats
+        // const response = await axios.get('http://localhost:8000/api/books/stats');
+        // setStats(response.data);
+        
+        // For now, we'll simulate this with a setTimeout
+        setTimeout(() => {
+          setStats({
+            totalBooks: 0, // This will be updated when the actual books are fetched
+            showing: 10,
+            currentPage: 1
+          });
+          setLoading(false);
+        }, 500);
+      } catch (error) {
+        console.error('Error fetching book stats:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchBookStats();
+  }, []);
+
+  const handleSearch = (searchTerm) => {
+    // This would be implemented to filter books based on the search term
+    console.log('Searching for:', searchTerm);
+  };
+
+  const handlePageChange = (page) => {
+    setStats(prevStats => ({
+      ...prevStats,
+      currentPage: page
+    }));
+  };
+
   return (
     <div className="container-xxl">
       <div className="row mb-4">
         <div className="col-12">
           <h4 className="fw-bold py-3 mb-2">Book Details</h4>
+        </div>
+      </div>
+
+      <div className="row mb-4">
+        <div className="col-md-6">
+          <SearchBar onSearch={handleSearch} placeholder="Search books..." />
+        </div>
+        <div className="col-md-6 text-end">
+          <a href="/books/create" className="btn btn-primary">
+            <i className="bi bi-plus-circle me-1"></i> Add New Book
+          </a>
         </div>
       </div>
 
@@ -49,9 +106,10 @@ function BookDetail() {
 
             <div className="card-footer border-top">
               <BookPagination 
-                showing={10} 
-                total={100} 
-                currentPage={1}
+                showing={stats.showing} 
+                total={stats.totalBooks} 
+                currentPage={stats.currentPage}
+                onPageChange={handlePageChange}
               />
             </div>
           </div>

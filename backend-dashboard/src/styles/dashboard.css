@@ -1,0 +1,24 @@
+
+.avatar-md {
+    height: 4rem;
+    width: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .fs-32 {
+    font-size: 2rem;
+  }
+  
+  .fs-12 {
+    font-size: 0.75rem;
+  }
+  
+  .bg-soft-primary {
+    background-color: rgba(85, 110, 230, 0.25);
+  }
+  
+  .bg-soft-success {
+    background-color: rgba(10, 179, 156, 0.25);
+  }

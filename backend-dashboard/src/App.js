@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import UserMenu from "./components/UserMenu";
 import SidebarMenu from "./components/SidebarMenu";
-import Dashboard from "./components/Dashboard";
 import Orders from "./pages/Orders";
 import OrderDetails from "./components/orders/OrderDetails";
 import OrderCart from "./components/orders/OrderCart";
@@ -20,6 +19,8 @@ import CreateUser from "./pages/CreateUser";
 import EditUser from "./pages/EditUser";
 import ViewUser from "./pages/ViewUser";
 import TestUser from "./pages/TestUser";
+import Dashboard from "./pages/Dashboard";
+import Categories from "./pages/Categories";
 import ProtectedRoute from "./components/ProtectedRoute";
 import axios from "axios";
 import { checkApiHealth } from "./services/api";
@@ -241,7 +242,10 @@ function App() {
                         element={<OrderCheckout />}
                       />
                       <Route path="products" element={<Products />} />
+                      <Route path="products/:id/edit" element={<EditBook />} />
+                      <Route path="products/:id/edit-detail" element={<EditBookDetail />} />
                       <Route path="purchases" element={<Purchases />} />
+                      <Route path="categories" element={<Categories />} />
                       <Route path="books" element={<BookDetail />} />
                       <Route path="books/create" element={<CreateBook />} />
                       <Route path="books/:id/edit" element={<EditBook />} />
