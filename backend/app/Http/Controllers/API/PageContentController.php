@@ -35,25 +35,23 @@ class PageContentController extends Controller
         }
 
         try {
-            // Process content - could be JSON string or already decoded
+            // Get content from request
             $content = $request->content;
-            if (is_string($content)) {
-                $content = json_decode($content, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return response()->json(['errors' => ['content' => 'Invalid JSON format']], 422);
-                }
-            }
             
+            \Log::info('Content type: ' . gettype($content));
+            
+            // Create the page content
             $pageContent = PageContent::create([
                 'page_slug' => $request->page_slug,
                 'title' => $request->title,
-                'content' => $content,
+                'content' => $content, // Let Laravel handle JSON conversion
                 'status' => $request->status,
                 'created_by' => $request->user() ? $request->user()->id : null,
             ]);
 
             return response()->json($pageContent, 201);
         } catch (\Exception $e) {
+            \Log::error('Error saving page content: ' . $e->getMessage());
             return response()->json(['message' => 'Error saving page content: ' . $e->getMessage()], 500);
         }
     }
@@ -94,24 +92,16 @@ class PageContentController extends Controller
         }
 
         try {
-            $data = $request->only(['title', 'status']);
+            $data = $request->only(['title', 'status', 'content']);
             
-            // Process content - could be JSON string or already decoded
-            if ($request->has('content')) {
-                $content = $request->content;
-                if (is_string($content)) {
-                    $content = json_decode($content, true);
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        return response()->json(['errors' => ['content' => 'Invalid JSON format']], 422);
-                    }
-                }
-                $data['content'] = $content;
-            }
+            \Log::info('Update content type: ' . gettype($request->content));
             
+            // Update the page content
             $pageContent->update($data);
             
             return response()->json($pageContent);
         } catch (\Exception $e) {
+            \Log::error('Error updating page content: ' . $e->getMessage());
             return response()->json(['message' => 'Error updating page content: ' . $e->getMessage()], 500);
         }
     }

@@ -14,7 +14,27 @@ const DynamicPage = ({ slug, title }) => {
         setLoading(true);
         // Fetch the published page content by slug
         const response = await axios.get(`/api/public/pages/${slug}`);
-        setPageContent(response.data);
+
+        // Process the content
+        let content = response.data.content;
+
+        // Parse content if it's a string
+        if (typeof content === "string") {
+          try {
+            content = JSON.parse(content);
+          } catch (err) {
+            console.error("Error parsing page content:", err);
+          }
+        }
+
+        console.log("Page content structure:", content);
+
+        // Set the processed data
+        setPageContent({
+          ...response.data,
+          content: content,
+        });
+
         setLoading(false);
       } catch (err) {
         console.error(`Error fetching ${slug} page:`, err);

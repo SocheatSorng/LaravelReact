@@ -22,12 +22,16 @@ const PageEditor = () => {
       fetchPageData();
     } else {
       setLoading(false);
+      // Initialize with proper Puck data structure
       setPageData({
+        content: [], // Array for main content items
         root: {
-          type: "root",
-          props: {},
-          children: [],
+          props: {
+            title: "New Page",
+            description: "Page description goes here",
+          },
         },
+        zones: {}, // Object for zone data
       });
     }
   }, [slug]);
@@ -43,11 +47,19 @@ const PageEditor = () => {
         content = JSON.parse(content);
       }
 
-      // Ensure content has correct structure
-      if (content && content.root && !content.root.props) {
-        // Migrate old format to new format
-        content.root.props = {};
+      // Log the loaded content structure
+      console.log("Loaded content structure:", content);
+
+      // Ensure content has the correct Puck data structure
+      if (!content) {
+        content = { content: [], root: { props: {} }, zones: {} };
       }
+
+      // Add missing properties if needed
+      if (!content.content) content.content = [];
+      if (!content.root) content.root = { props: {} };
+      if (!content.root.props) content.root.props = {};
+      if (!content.zones) content.zones = {};
 
       setPageData(content);
       setPageTitle(response.data.title);
@@ -78,31 +90,37 @@ const PageEditor = () => {
         return;
       }
 
-      // Ensure data has the correct structure with root.props
-      if (data && data.root && !data.root.props) {
-        data.root.props = {};
-      }
+      // For debugging - log the data structure
+      console.log("Saving data structure:", data);
+      console.log("Content array:", data.content);
+      console.log("Root props:", data.root?.props);
+      console.log("Zones:", data.zones);
 
       const saveData = {
         title: pageTitle,
         page_slug: pageSlug,
-        content: JSON.stringify(data),
+        content: data, // Pass data directly without stringification
         status,
       };
 
+      console.log("Sending to API:", saveData);
+
+      let response;
       if (slug) {
         // Update existing page
-        await axios.put(`/api/page-contents/${slug}`, saveData);
+        response = await axios.put(`/api/page-contents/${slug}`, saveData);
       } else {
         // Create new page
-        await axios.post("/api/page-contents", saveData);
+        response = await axios.post("/api/page-contents", saveData);
       }
 
+      console.log("API response:", response.data);
       setSaving(false);
       // Redirect to pages list
       navigate("/pages");
     } catch (error) {
       console.error("Error saving page:", error);
+      console.error("Response data:", error.response?.data);
       setError(
         error.response?.data?.message ||
           "Failed to save page. Please try again."

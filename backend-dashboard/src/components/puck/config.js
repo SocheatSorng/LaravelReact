@@ -1,6 +1,7 @@
 import React from "react";
+import { DropZone } from "@measured/puck";
 
-// Define our custom components
+// Define our custom components - match these exact names in the frontend config
 const components = {
   // Hero component
   Hero: {
@@ -18,8 +19,16 @@ const components = {
       buttonLink: "/about",
       backgroundImage: "https://via.placeholder.com/1200x600",
     },
-    render: ({ title, subtitle, buttonText, buttonLink, backgroundImage }) => (
+    render: ({
+      title,
+      subtitle,
+      buttonText,
+      buttonLink,
+      backgroundImage,
+      puck,
+    }) => (
       <div
+        ref={puck?.dragRef}
         className="hero"
         style={{
           backgroundImage: `url(${backgroundImage})`,
@@ -67,8 +76,9 @@ const components = {
       content: "This is a text block. You can edit this text.",
       textAlign: "left",
     },
-    render: ({ heading, content, textAlign }) => (
+    render: ({ heading, content, textAlign, puck }) => (
       <div
+        ref={puck?.dragRef}
         style={{
           textAlign,
           padding: "2rem",
@@ -101,20 +111,25 @@ const components = {
     defaultProps: {
       leftColumnWidth: "50%",
     },
-    render: ({ leftColumnWidth, children }) => {
+    render: ({ leftColumnWidth, puck }) => {
       // Calculate right column width
       const rightColumnWidth = `${100 - parseInt(leftColumnWidth)}%`;
 
       return (
         <div
+          ref={puck?.dragRef}
           style={{
             display: "flex",
             gap: "2rem",
             marginBottom: "2rem",
           }}
         >
-          <div style={{ width: leftColumnWidth }}>{children?.[0]}</div>
-          <div style={{ width: rightColumnWidth }}>{children?.[1]}</div>
+          <div style={{ width: leftColumnWidth }}>
+            <DropZone zone="left-column" />
+          </div>
+          <div style={{ width: rightColumnWidth }}>
+            <DropZone zone="right-column" />
+          </div>
         </div>
       );
     },
@@ -134,8 +149,9 @@ const components = {
       width: "100%",
       height: "auto",
     },
-    render: ({ src, alt, width, height }) => (
+    render: ({ src, alt, width, height, puck }) => (
       <img
+        ref={puck?.dragRef}
         src={src}
         alt={alt}
         style={{
@@ -153,7 +169,34 @@ const components = {
 // Create and export the Puck configuration
 const config = {
   components,
-  // You can add additional options here if needed
+  // Root configuration according to Puck documentation
+  root: {
+    fields: {
+      title: {
+        type: "text",
+        label: "Page Title",
+      },
+      description: {
+        type: "textarea",
+        label: "Page Description",
+      },
+    },
+    defaultProps: {
+      title: "Page Title",
+      description: "Page description for SEO",
+    },
+    render: ({ children, title, description }) => {
+      return (
+        <div className="page-content">
+          <div className="page-metadata" style={{ display: "none" }}>
+            <h1>{title}</h1>
+            <p>{description}</p>
+          </div>
+          <div className="page-content-area">{children}</div>
+        </div>
+      );
+    },
+  },
 };
 
 export default config;

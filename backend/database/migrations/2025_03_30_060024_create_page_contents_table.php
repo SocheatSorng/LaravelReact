@@ -11,10 +11,36 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbPage_Contents', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        // Only update if table already exists
+        if (Schema::hasTable('tbPage_Contents')) {
+            Schema::table('tbPage_Contents', function (Blueprint $table) {
+                if (!Schema::hasColumn('tbPage_Contents', 'page_slug')) {
+                    $table->string('page_slug')->unique();
+                }
+                if (!Schema::hasColumn('tbPage_Contents', 'title')) {
+                    $table->string('title');
+                }
+                if (!Schema::hasColumn('tbPage_Contents', 'content')) {
+                    $table->longText('content')->nullable();
+                }
+                if (!Schema::hasColumn('tbPage_Contents', 'status')) {
+                    $table->enum('status', ['draft', 'published'])->default('draft');
+                }
+                if (!Schema::hasColumn('tbPage_Contents', 'created_by')) {
+                    $table->unsignedBigInteger('created_by')->nullable();
+                }
+            });
+        } else {
+            Schema::create('tbPage_Contents', function (Blueprint $table) {
+                $table->id();
+                $table->string('page_slug')->unique();
+                $table->string('title');
+                $table->longText('content')->nullable();
+                $table->enum('status', ['draft', 'published'])->default('draft');
+                $table->unsignedBigInteger('created_by')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -22,6 +48,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbPage_Contents');
+        // Don't drop the table - there may be existing data
+        // We'll just remove our added columns if needed
     }
 };
