@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
 
 function SidebarMenu() {
   const location = useLocation();
@@ -12,7 +12,7 @@ function SidebarMenu() {
 
         {/* Dashboard */}
         <li className="nav-item">
-          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
+          <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
             <span className="nav-icon">
               <span className="fs-24 align-middle">📊</span>
             </span>
@@ -22,7 +22,10 @@ function SidebarMenu() {
 
         {/* Orders */}
         <li className="nav-item">
-          <Link to="/orders" className={`nav-link ${isActive('/orders') ? 'active' : ''}`}>
+          <Link
+            to="/orders"
+            className={`nav-link ${isActive("/orders") ? "active" : ""}`}
+          >
             <span className="nav-icon">
               <span className="fs-24 align-middle">🛍️</span>
             </span>
@@ -32,7 +35,10 @@ function SidebarMenu() {
 
         {/* Products */}
         <li className="nav-item">
-          <Link to="/products" className={`nav-link ${isActive('/products') ? 'active' : ''}`}>
+          <Link
+            to="/products"
+            className={`nav-link ${isActive("/products") ? "active" : ""}`}
+          >
             <span className="nav-icon">
               <span className="fs-24 align-middle">👕</span>
             </span>
@@ -42,7 +48,10 @@ function SidebarMenu() {
 
         {/* Purchases */}
         <li className="nav-item">
-          <Link to="/purchases" className={`nav-link ${isActive('/purchases') ? 'active' : ''}`}>
+          <Link
+            to="/purchases"
+            className={`nav-link ${isActive("/purchases") ? "active" : ""}`}
+          >
             <span className="nav-icon">
               <span className="fs-24 align-middle">💳</span>
             </span>
@@ -52,11 +61,27 @@ function SidebarMenu() {
 
         {/* Users */}
         <li className="nav-item">
-          <Link to="/users" className={`nav-link ${isActive('/users') ? 'active' : ''}`}>
+          <Link
+            to="/users"
+            className={`nav-link ${isActive("/users") ? "active" : ""}`}
+          >
             <span className="nav-icon">
               <span className="fs-24 align-middle">👥</span>
             </span>
             <span className="nav-text">Users</span>
+          </Link>
+        </li>
+
+        {/* Pages */}
+        <li className="nav-item">
+          <Link
+            to="/pages"
+            className={`nav-link ${isActive("/pages") ? "active" : ""}`}
+          >
+            <span className="nav-icon">
+              <span className="fs-24 align-middle">📝</span>
+            </span>
+            <span className="nav-text">Pages</span>
           </Link>
         </li>
       </ul>

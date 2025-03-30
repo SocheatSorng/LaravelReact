@@ -12,6 +12,7 @@ use App\Http\Controllers\API\PurchaseController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\WishlistController;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\PageContentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -117,3 +118,20 @@ Route::prefix('wishlists')->group(function () {
     Route::get('/user/{userId}', [WishlistController::class, 'getUserWishlist']);
     Route::delete('/user/{userId}/clear', [WishlistController::class, 'clearWishlist']);
 });
+
+// Page Content CRUD routes
+Route::prefix('page-contents')->group(function () {
+    Route::get('/', [PageContentController::class, 'index']);
+    Route::post('/', [PageContentController::class, 'store']);
+    Route::get('/{slug}', [PageContentController::class, 'show']);
+    Route::put('/{slug}', [PageContentController::class, 'update']);
+    Route::delete('/{slug}', [PageContentController::class, 'destroy']);
+});
+
+// Public page content routes
+Route::prefix('public')->group(function () {
+    Route::get('/pages/{slug}', [PageContentController::class, 'getPublishedPage']);
+});
+
+// Keep the existing public route for backward compatibility
+Route::get('/pages/{slug}', [PageContentController::class, 'getPublishedPage']);

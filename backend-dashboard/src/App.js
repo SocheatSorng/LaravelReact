@@ -23,6 +23,8 @@ import TestUser from "./pages/TestUser";
 import ProtectedRoute from "./components/ProtectedRoute";
 import axios from "axios";
 import { checkApiHealth } from "./services/api";
+import PageList from "./pages/PageEditor/PageList";
+import PageEditor from "./pages/PageEditor";
 
 // API Test Component
 function TestAPI() {
@@ -252,6 +254,9 @@ function App() {
                       <Route path="users/create" element={<CreateUser />} />
                       <Route path="users/:id/edit" element={<EditUser />} />
                       <Route path="users/:id" element={<ViewUser />} />
+                      <Route path="pages" element={<PageList />} />
+                      <Route path="pages/new" element={<PageEditor />} />
+                      <Route path="pages/edit/:slug" element={<PageEditor />} />
                     </Routes>
                   </div>
                 </div>
