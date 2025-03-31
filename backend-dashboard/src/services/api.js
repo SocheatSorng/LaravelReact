@@ -945,5 +945,166 @@ export const userService = {
   },
 };
 
+// Page Content service
+export const pageContentService = {
+  // Get all pages
+  getPages: async () => {
+    try {
+      const response = await api.get('/page-contents', {
+        timeout: 30000 // Extended timeout for potentially large content
+      });
+      return {
+        success: true,
+        data: response.data,
+        message: "Pages retrieved successfully"
+      };
+    } catch (error) {
+      console.error('Error fetching pages:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Failed to fetch pages",
+        statusCode: error.response?.status
+      };
+    }
+  },
+
+  // Get a single page by slug
+  getPage: async (slug) => {
+    try {
+      const response = await api.get(`/page-contents/${slug}`, {
+        timeout: 30000 // Extended timeout for potentially large content
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching page '${slug}':`, error);
+      throw error;
+    }
+  },
+
+  // Create a new page
+  createPage: async (pageData) => {
+    try {
+      console.log("Creating page with data:", pageData);
+      
+      // Check if content needs to be stringified
+      const preparedData = { ...pageData };
+      if (preparedData.content && typeof preparedData.content !== 'string') {
+        try {
+          // Test if it's already a JSON string
+          JSON.parse(JSON.stringify(preparedData.content));
+        } catch (e) {
+          console.error("Invalid content format:", e);
+          return {
+            success: false,
+            message: "Invalid content format - must be valid JSON"
+          };
+        }
+      }
+      
+      const response = await api.post('/page-contents', preparedData, {
+        timeout: 30000 // Extended timeout for potentially large content
+      });
+      
+      console.log("Create page response:", response.data);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: "Page created successfully"
+      };
+    } catch (error) {
+      console.error('Error creating page:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Failed to create page",
+        errors: error.response?.data?.errors || null,
+        statusCode: error.response?.status
+      };
+    }
+  },
+
+  // Update an existing page
+  updatePage: async (slug, pageData) => {
+    try {
+      console.log(`Updating page '${slug}' with data:`, pageData);
+      
+      // Check if content needs to be stringified
+      const preparedData = { ...pageData };
+      if (preparedData.content && typeof preparedData.content !== 'string') {
+        try {
+          // Test if it's already a JSON string
+          JSON.parse(JSON.stringify(preparedData.content));
+        } catch (e) {
+          console.error("Invalid content format:", e);
+          return {
+            success: false,
+            message: "Invalid content format - must be valid JSON"
+          };
+        }
+      }
+      
+      const response = await api.put(`/page-contents/${slug}`, preparedData, {
+        timeout: 30000 // Extended timeout for potentially large content
+      });
+      
+      console.log("Update page response:", response.data);
+      
+      return {
+        success: true,
+        data: response.data,
+        message: `Page '${slug}' updated successfully`
+      };
+    } catch (error) {
+      console.error(`Error updating page '${slug}':`, error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || "Failed to update page",
+        errors: error.response?.data?.errors || null,
+        statusCode: error.response?.status
+      };
+    }
+  },
+
+  // Delete a page
+  deletePage: async (slug) => {
+    try {
+      const response = await api.delete(`/page-contents/${slug}`);
+      return {
+        success: true,
+        data: response.data,
+        message: `Page '${slug}' deleted successfully`
+      };
+    } catch (error) {
+      console.error(`Error deleting page '${slug}':`, error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || `Failed to delete page '${slug}'`,
+        statusCode: error.response?.status
+      };
+    }
+  },
+
+  // Get a published page for frontend display
+  getPublishedPage: async (slug) => {
+    try {
+      const response = await api.get(`/public/pages/${slug}`, {
+        timeout: 30000 // Extended timeout for potentially large content
+      });
+      return {
+        success: true,
+        data: response.data,
+        message: `Published page '${slug}' retrieved successfully`
+      };
+    } catch (error) {
+      console.error(`Error fetching published page '${slug}':`, error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || `Failed to fetch published page '${slug}'`,
+        statusCode: error.response?.status
+      };
+    }
+  }
+};
+
 // Make sure we also export the API instance as the default
 export default api;

@@ -261,6 +261,7 @@ function App() {
                       <Route path="pages" element={<PageList />} />
                       <Route path="pages/new" element={<PageEditor />} />
                       <Route path="pages/edit/:slug" element={<PageEditor />} />
+                      <Route path="pages/frontend/:page" element={<PageEditor frontendEdit={true} />} />
                     </Routes>
                   </div>
                 </div>

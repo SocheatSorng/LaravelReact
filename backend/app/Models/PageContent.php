@@ -6,14 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class PageContent extends Model
 {
-    protected $table = 'tbPage_Contents';
+    protected $table = 'page_contents';
     
     protected $fillable = [
-        'page_slug',
+        'slug',
         'title',
+        'description',
         'content',
+        'type',
         'status',
-        'created_by',
     ];
 
     /**
