@@ -24,8 +24,24 @@ const BookForm = ({ bookId }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        console.log("Fetching categories...");
         const response = await bookService.getCategories();
-        setCategories(response.data.data || []);
+        console.log("Categories response:", response);
+
+        // Handle different possible response formats
+        let categoriesData = [];
+        if (response.data) {
+          if (Array.isArray(response.data)) {
+            categoriesData = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            categoriesData = response.data.data;
+          } else if (response.success && Array.isArray(response.data)) {
+            categoriesData = response.data;
+          }
+        }
+
+        console.log("Categories data extracted:", categoriesData);
+        setCategories(categoriesData);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
