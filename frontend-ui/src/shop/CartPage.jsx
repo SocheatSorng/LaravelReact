@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import delImgUrl from "../assets/images/shop/del.png";
 import CheckoutPage from "./CheckOutPage";
+import { getImageUrl } from "../utilis/apiService";
 
 // Fallback image in case the item image is missing or broken
 const fallbackImage = "/assets/images/product-placeholder.png";
@@ -149,7 +150,9 @@ const CartPage = () => {
                                 <img
                                   src={
                                     item.BookID
-                                      ? `http://localhost:8000/api/books/${item.BookID}/image`
+                                      ? getImageUrl(
+                                          `books/${item.BookID}/image`
+                                        )
                                       : fallbackImage
                                   }
                                   alt={item.name}

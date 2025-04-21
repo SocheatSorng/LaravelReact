@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import Loading from "../components/Loading";
+import { get, getImageUrl } from "../utilis/apiService";
 
 // Import Swiper React Components
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -24,14 +25,8 @@ const SingleProduct = () => {
     const getProduct = async () => {
       try {
         setLoading(true);
-        // Fetch the specific book by ID
-        const response = await fetch(`http://127.0.0.1:8000/api/books/${id}`);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
+        // Fetch the specific book by ID using API service
+        const result = await get(`books/${id}`);
 
         if (result.success && result.data) {
           // Format the data to match the expected structure
@@ -51,12 +46,9 @@ const SingleProduct = () => {
 
           setProduct(formattedProduct);
 
-          // Fetch related books
-          const relatedResponse = await fetch(
-            `http://127.0.0.1:8000/api/books/${id}/related`
-          );
-          if (relatedResponse.ok) {
-            const relatedResult = await relatedResponse.json();
+          // Fetch related books using API service
+          try {
+            const relatedResult = await get(`books/${id}/related`);
             if (relatedResult.success && relatedResult.data) {
               // Format related books
               const formattedRelated = relatedResult.data
@@ -74,15 +66,13 @@ const SingleProduct = () => {
 
               setRelatedProducts(formattedRelated);
             }
-          } else {
+          } catch (relatedError) {
+            console.error("Error fetching related products:", relatedError);
             // If related books API fails, fetch all books and filter
-            const allBooksResponse = await fetch(
-              `http://127.0.0.1:8000/api/books`
-            );
-            if (allBooksResponse.ok) {
-              const allBooksResult = await allBooksResponse.json();
-              if (allBooksResult && Array.isArray(allBooksResult)) {
-                const related = allBooksResult
+            try {
+              const allBooksResult = await get("books");
+              if (allBooksResult && Array.isArray(allBooksResult.data)) {
+                const related = allBooksResult.data
                   .filter(
                     (book) =>
                       book.BookID !== parseInt(id) &&
@@ -103,6 +93,8 @@ const SingleProduct = () => {
 
                 setRelatedProducts(related);
               }
+            } catch (allBooksError) {
+              console.error("Error fetching all books:", allBooksError);
             }
           }
         } else {
@@ -166,7 +158,9 @@ const SingleProduct = () => {
                             <SwiperSlide>
                               <div className="single-thumb">
                                 <img
-                                  src={`http://localhost:8000/api/books/${product.BookID}/image`}
+                                  src={getImageUrl(
+                                    `books/${product.BookID}/image`
+                                  )}
                                   alt={product.title}
                                   className="img-fluid rounded"
                                   onError={(e) => {
@@ -291,7 +285,9 @@ const SingleProduct = () => {
                             <div className="product-thumb">
                               <div className="pro-thumb">
                                 <img
-                                  src={`http://localhost:8000/api/books/${item.BookID}/image`}
+                                  src={getImageUrl(
+                                    `books/${item.BookID}/image`
+                                  )}
                                   alt={item.title}
                                   onError={(e) => {
                                     e.target.src =

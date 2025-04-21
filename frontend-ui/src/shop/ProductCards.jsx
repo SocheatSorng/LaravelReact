@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../utilis/apiService";
 
 const ProductCards = ({ GridList, products }) => {
   return (
@@ -29,7 +30,7 @@ const ProductCards = ({ GridList, products }) => {
                   <img
                     src={
                       product.BookID
-                        ? `http://localhost:8000/api/books/${product.BookID}/image`
+                        ? getImageUrl(`books/${product.BookID}/image`)
                         : "/assets/images/product-placeholder.png"
                     }
                     alt={product.Title || product.title}

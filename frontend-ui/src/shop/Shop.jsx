@@ -7,6 +7,7 @@ import Search from "./Search";
 import ShopCategory from "./ShopCategory";
 import { useSearchParams } from "react-router-dom";
 import LoadingSkeleton from "./LoadingSkeleton";
+import { get } from "../utilis/apiService";
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
@@ -46,11 +47,8 @@ const Shop = () => {
         const result = await fetchProducts();
         const fetchedProducts = result.data || [];
 
-        // Fetch categories
-        const categoriesResponse = await fetch(
-          "http://127.0.0.1:8000/api/categories"
-        );
-        const categoriesResult = await categoriesResponse.json();
+        // Fetch categories using API service
+        const categoriesResult = await get("categories");
         const fetchedCategories = categoriesResult.data || [];
 
         // Cache the products in localStorage
@@ -103,8 +101,7 @@ const Shop = () => {
       setIsLoading(false);
 
       // Still need to fetch categories if not cached
-      fetch("http://127.0.0.1:8000/api/categories")
-        .then((response) => response.json())
+      get("categories")
         .then((result) => {
           const fetchedCategories = result.data || [];
           const uniqueCategories = [

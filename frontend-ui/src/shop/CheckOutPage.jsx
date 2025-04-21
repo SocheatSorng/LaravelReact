@@ -3,6 +3,7 @@ import { Button, Modal } from "react-bootstrap";
 import "../components/modal.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { post } from "../utilis/apiService";
 
 const CheckoutPage = ({ orderTotal, cartItems }) => {
   const [show, setShow] = useState(false);
@@ -42,7 +43,6 @@ const CheckoutPage = ({ orderTotal, cartItems }) => {
 
   // Submit guest order
   const handleGuestOrder = async () => {
-    // Validate form
     if (
       !guestData.GuestName ||
       !guestData.GuestEmail ||
@@ -53,44 +53,56 @@ const CheckoutPage = ({ orderTotal, cartItems }) => {
       return;
     }
 
+    setError(null);
+    setLoading(true);
+
     try {
-      setLoading(true);
-      setError(null);
+      // Format order items exactly as expected by the server
+      const orderItems = cartItems.map((item) => {
+        // Get the book ID from any available property
+        const bookId = item.BookID || item.id || 1;
+        // Get the price as a float
+        const price = parseFloat(item.price) || 0;
+        // Get the quantity as an integer
+        const quantity = parseInt(item.quantity) || 1;
 
-      // Prepare order items
-      const items = cartItems.map((item) => ({
-        BookID: item.BookID,
-        Quantity: item.quantity,
-        Price: item.price,
-      }));
+        return {
+          BookID: bookId, // Using BookID exactly as required
+          Quantity: quantity, // Using Quantity exactly as required
+          Price: price, // Using Price exactly as required
+        };
+      });
 
-      // Create order payload
+      // Format the order payload exactly as required by the API
       const orderPayload = {
-        ...guestData,
-        TotalAmount: orderTotal,
-        PaymentMethod: "Cash",
-        items: items,
+        GuestName: guestData.GuestName, // Using GuestName as required
+        GuestEmail: guestData.GuestEmail, // Using GuestEmail as required
+        GuestPhone: guestData.GuestPhone, // Using GuestPhone as required
+        ShippingAddress: guestData.ShippingAddress, // Using ShippingAddress as required
+        TotalAmount: parseFloat(orderTotal), // Changed from total_amount to TotalAmount
+        PaymentMethod: "Cash", // Changed from payment_method to PaymentMethod
+        items: orderItems, // Using items array with exact field names
       };
 
-      // Send API request
-      const response = await axios.post(
-        "http://localhost:8000/api/orders/guest",
-        orderPayload
+      console.log(
+        "Sending order payload:",
+        JSON.stringify(orderPayload, null, 2)
       );
 
-      if (response.data.success) {
+      // Send API request
+      const response = await post("orders/guest", orderPayload);
+      console.log("Order response:", response);
+
+      if (response && (response.success || response.status === "success")) {
         alert("Your order has been placed successfully!");
         localStorage.removeItem("cart");
         navigate(from, { replace: true });
       } else {
-        setError(response.data.message || "Failed to place order");
+        setError(response.message || "Failed to place order");
       }
     } catch (err) {
       console.error("Order error:", err);
-      setError(
-        err.response?.data?.message ||
-          "An error occurred while placing your order"
-      );
+      setError(err.message || "An error occurred while placing your order");
     } finally {
       setLoading(false);
     }

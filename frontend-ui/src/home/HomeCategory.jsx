@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchProducts } from "../utilis/fetchProducts"; // Adjust the import path as needed
+import { getImageUrl } from "../utilis/apiService";
 
 const subTitle = "Choose Any Books";
 const title = "Buy Everything with Us";
@@ -99,9 +100,7 @@ const HomeCategory = () => {
                       }}
                     >
                       <img
-                        src={`http://localhost:8000/api/books/${
-                          val.productId || 1
-                        }/image`}
+                        src={getImageUrl(`books/${val.productId || 1}/image`)}
                         alt={val.imgAlt}
                         style={{
                           maxWidth: "100%",
@@ -161,9 +160,9 @@ const HomeCategory = () => {
                       }}
                     >
                       <img
-                        src={`http://localhost:8000/api/books/${
-                          product.BookID || product.id
-                        }/image`}
+                        src={getImageUrl(
+                          `books/${product.BookID || product.id}/image`
+                        )}
                         alt={product.Title || product.title}
                         style={{
                           maxWidth: "100%",

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import SelectedCategory from "../components/SelectedCategory";
+import { get } from "../utilis/apiService";
 
 const title = (
   <h2>
@@ -32,8 +33,7 @@ const Banner = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/books");
-        const result = await response.json();
+        const result = await get("books");
         console.log("API Response:", result);
 
         // Make sure we're using the data array from the response
