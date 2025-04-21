@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Modal, Button, Form } from 'react-bootstrap';
-import StatCard from '../components/common/StatCard';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Modal, Button, Form } from "react-bootstrap";
+import StatCard from "../components/common/StatCard";
+import { bookService } from "../services/api"; // Import the API service
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -15,8 +16,8 @@ const Categories = () => {
 
   // State for form data
   const [formData, setFormData] = useState({
-    Name: '',
-    Description: ''
+    Name: "",
+    Description: "",
   });
 
   // State for the current category being edited/deleted
@@ -32,17 +33,20 @@ const Categories = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get('http://localhost:8000/api/categories');
-      if (response.data && response.data.success && Array.isArray(response.data.data)) {
-        setCategories(response.data.data);
-        setTotalCategories(response.data.data.length);
+
+      // Use the API service instead of direct axios call
+      const result = await bookService.getCategories();
+
+      if (result.success && Array.isArray(result.data)) {
+        setCategories(result.data);
+        setTotalCategories(result.data.length);
       } else {
-        console.error('Unexpected response format:', response.data);
-        setError('Received unexpected data format from server');
+        console.error("Failed to fetch categories:", result.message);
+        setError(result.message || "Failed to load categories");
       }
     } catch (err) {
-      console.error('Error fetching categories:', err);
-      setError('Failed to load categories. Please try again.');
+      console.error("Error fetching categories:", err);
+      setError("Failed to load categories. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -57,15 +61,15 @@ const Categories = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   // Reset form data
   const resetFormData = () => {
     setFormData({
-      Name: '',
-      Description: ''
+      Name: "",
+      Description: "",
     });
   };
 
@@ -79,8 +83,8 @@ const Categories = () => {
   const handleShowEditModal = (category) => {
     setCurrentCategory(category);
     setFormData({
-      Name: category.Name || '',
-      Description: category.Description || ''
+      Name: category.Name || "",
+      Description: category.Description || "",
     });
     setShowEditModal(true);
   };
@@ -95,17 +99,33 @@ const Categories = () => {
   const handleAddCategory = async () => {
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:8000/api/categories', formData);
+      // Replace direct axios call with API that includes headers
+      const response = await axios.post(
+        "http://localhost:8000/api/categories",
+        formData,
+        {
+          headers: {
+            "X-API-Key":
+              localStorage.getItem("api_key") ||
+              "oNm9RNFaejpw0W8MWGtjfPC1tFFJsx7rPVvM5zqPcevnOom86M2RSGcyVmv5",
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
       if (response.data && response.data.success) {
         setShowAddModal(false);
         fetchCategories();
         resetFormData();
       } else {
-        setError('Failed to add category: ' + (response.data.message || 'Unknown error'));
+        setError(
+          "Failed to add category: " +
+            (response.data.message || "Unknown error")
+        );
       }
     } catch (err) {
-      console.error('Error adding category:', err);
-      setError('Failed to add category. Please try again.');
+      console.error("Error adding category:", err);
+      setError("Failed to add category. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -114,20 +134,36 @@ const Categories = () => {
   // Update category
   const handleUpdateCategory = async () => {
     if (!currentCategory) return;
-    
+
     try {
       setLoading(true);
-      const response = await axios.put(`http://localhost:8000/api/categories/${currentCategory.CategoryID}`, formData);
+      // Replace direct axios call with API that includes headers
+      const response = await axios.put(
+        `http://localhost:8000/api/categories/${currentCategory.CategoryID}`,
+        formData,
+        {
+          headers: {
+            "X-API-Key":
+              localStorage.getItem("api_key") ||
+              "oNm9RNFaejpw0W8MWGtjfPC1tFFJsx7rPVvM5zqPcevnOom86M2RSGcyVmv5",
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
       if (response.data && response.data.success) {
         setShowEditModal(false);
         fetchCategories();
         resetFormData();
       } else {
-        setError('Failed to update category: ' + (response.data.message || 'Unknown error'));
+        setError(
+          "Failed to update category: " +
+            (response.data.message || "Unknown error")
+        );
       }
     } catch (err) {
-      console.error('Error updating category:', err);
-      setError('Failed to update category. Please try again.');
+      console.error("Error updating category:", err);
+      setError("Failed to update category. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -136,22 +172,39 @@ const Categories = () => {
   // Delete category
   const handleDeleteCategory = async () => {
     if (!currentCategory) return;
-    
+
     try {
       setLoading(true);
-      const response = await axios.delete(`http://localhost:8000/api/categories/${currentCategory.CategoryID}`);
+      // Replace direct axios call with API that includes headers
+      const response = await axios.delete(
+        `http://localhost:8000/api/categories/${currentCategory.CategoryID}`,
+        {
+          headers: {
+            "X-API-Key":
+              localStorage.getItem("api_key") ||
+              "oNm9RNFaejpw0W8MWGtjfPC1tFFJsx7rPVvM5zqPcevnOom86M2RSGcyVmv5",
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
       if (response.data && response.data.success) {
         setShowDeleteModal(false);
         fetchCategories();
       } else {
-        setError('Failed to delete category: ' + (response.data.message || 'Unknown error'));
+        setError(
+          "Failed to delete category: " +
+            (response.data.message || "Unknown error")
+        );
       }
     } catch (err) {
-      console.error('Error deleting category:', err);
-      setError('Failed to delete category. ' + 
-        (err.response && err.response.data && err.response.data.message 
-          ? err.response.data.message 
-          : 'Please try again.'));
+      console.error("Error deleting category:", err);
+      setError(
+        "Failed to delete category. " +
+          (err.response && err.response.data && err.response.data.message
+            ? err.response.data.message
+            : "Please try again.")
+      );
     } finally {
       setLoading(false);
     }
@@ -160,7 +213,10 @@ const Categories = () => {
   // Calculate pagination
   const indexOfLastCategory = currentPage * categoriesPerPage;
   const indexOfFirstCategory = indexOfLastCategory - categoriesPerPage;
-  const currentCategories = categories.slice(indexOfFirstCategory, indexOfLastCategory);
+  const currentCategories = categories.slice(
+    indexOfFirstCategory,
+    indexOfLastCategory
+  );
   const totalPages = Math.ceil(totalCategories / categoriesPerPage);
 
   // Change page
@@ -176,30 +232,34 @@ const Categories = () => {
     return (
       <nav aria-label="Categories pagination">
         <ul className="pagination justify-content-end mb-0">
-          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-            <button 
-              className="page-link" 
+          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+            <button
+              className="page-link"
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
             >
               Previous
             </button>
           </li>
-          
-          {pageNumbers.map(number => (
-            <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
-              <button 
-                className="page-link" 
-                onClick={() => paginate(number)}
-              >
+
+          {pageNumbers.map((number) => (
+            <li
+              key={number}
+              className={`page-item ${currentPage === number ? "active" : ""}`}
+            >
+              <button className="page-link" onClick={() => paginate(number)}>
                 {number}
               </button>
             </li>
           ))}
-          
-          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-            <button 
-              className="page-link" 
+
+          <li
+            className={`page-item ${
+              currentPage === totalPages ? "disabled" : ""
+            }`}
+          >
+            <button
+              className="page-link"
               onClick={() => paginate(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
@@ -222,18 +282,14 @@ const Categories = () => {
 
       {/* Statistics */}
       <div className="row mb-4">
-        <StatCard
-          title="Total Categories"
-          count={totalCategories}
-          icon="📋"
-        />
+        <StatCard title="Total Categories" count={totalCategories} icon="📋" />
       </div>
 
       {/* Error Alert */}
       {error && (
         <div className="alert alert-danger" role="alert">
           {error}
-          <button 
+          <button
             className="btn btn-sm btn-outline-danger ms-2"
             onClick={() => fetchCategories()}
           >
@@ -250,10 +306,7 @@ const Categories = () => {
               <div>
                 <h4 className="card-title">Category List</h4>
               </div>
-              <button 
-                className="btn btn-primary" 
-                onClick={handleShowAddModal}
-              >
+              <button className="btn btn-primary" onClick={handleShowAddModal}>
                 <i className="bi bi-plus-circle me-1"></i> Add Category
               </button>
             </div>
@@ -274,13 +327,16 @@ const Categories = () => {
                   {loading && (
                     <tr>
                       <td colSpan="6" className="text-center py-4">
-                        <div className="spinner-border text-primary" role="status">
+                        <div
+                          className="spinner-border text-primary"
+                          role="status"
+                        >
                           <span className="visually-hidden">Loading...</span>
                         </div>
                       </td>
                     </tr>
                   )}
-                  
+
                   {!loading && currentCategories.length === 0 && (
                     <tr>
                       <td colSpan="6" className="text-center py-4">
@@ -288,38 +344,43 @@ const Categories = () => {
                       </td>
                     </tr>
                   )}
-                  
-                  {!loading && currentCategories.map(category => (
-                    <tr key={category.CategoryID}>
-                      <td>{category.CategoryID}</td>
-                      <td>{category.Name}</td>
-                      <td>{category.Description || '-'}</td>
-                      <td>
-                        <span className="badge bg-primary">
-                          {category.books_count || 0}
-                        </span>
-                      </td>
-                      <td>{category.CreatedAt ? new Date(category.CreatedAt).toLocaleDateString() : '-'}</td>
-                      <td>
-                        <div className="d-flex gap-2">
-                          <button 
-                            className="btn btn-soft-primary btn-sm" 
-                            title="Edit"
-                            onClick={() => handleShowEditModal(category)}
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </button>
-                          <button 
-                            className="btn btn-soft-danger btn-sm" 
-                            title="Delete"
-                            onClick={() => handleShowDeleteModal(category)}
-                          >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+
+                  {!loading &&
+                    currentCategories.map((category) => (
+                      <tr key={category.CategoryID}>
+                        <td>{category.CategoryID}</td>
+                        <td>{category.Name}</td>
+                        <td>{category.Description || "-"}</td>
+                        <td>
+                          <span className="badge bg-primary">
+                            {category.books_count || 0}
+                          </span>
+                        </td>
+                        <td>
+                          {category.CreatedAt
+                            ? new Date(category.CreatedAt).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td>
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-soft-primary btn-sm"
+                              title="Edit"
+                              onClick={() => handleShowEditModal(category)}
+                            >
+                              <i className="bi bi-pencil"></i>
+                            </button>
+                            <button
+                              className="btn btn-soft-danger btn-sm"
+                              title="Delete"
+                              onClick={() => handleShowDeleteModal(category)}
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -328,7 +389,8 @@ const Categories = () => {
               <div className="d-flex justify-content-between align-items-center">
                 <div>
                   <span className="text-muted">
-                    Showing {currentCategories.length} of {totalCategories} categories
+                    Showing {currentCategories.length} of {totalCategories}{" "}
+                    categories
                   </span>
                 </div>
                 {renderPagination()}
@@ -373,12 +435,12 @@ const Categories = () => {
           <Button variant="secondary" onClick={() => setShowAddModal(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleAddCategory}
             disabled={!formData.Name || loading}
           >
-            {loading ? 'Saving...' : 'Save Category'}
+            {loading ? "Saving..." : "Save Category"}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -418,12 +480,12 @@ const Categories = () => {
           <Button variant="secondary" onClick={() => setShowEditModal(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleUpdateCategory}
             disabled={!formData.Name || loading}
           >
-            {loading ? 'Saving...' : 'Update Category'}
+            {loading ? "Saving..." : "Update Category"}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -434,7 +496,10 @@ const Categories = () => {
           <Modal.Title>Delete Category</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Are you sure you want to delete the category "{currentCategory?.Name}"?</p>
+          <p>
+            Are you sure you want to delete the category "
+            {currentCategory?.Name}"?
+          </p>
           <p className="text-danger">This action cannot be undone.</p>
           <p>Note: Categories with associated books cannot be deleted.</p>
         </Modal.Body>
@@ -442,12 +507,12 @@ const Categories = () => {
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger"
             onClick={handleDeleteCategory}
             disabled={loading}
           >
-            {loading ? 'Deleting...' : 'Delete Category'}
+            {loading ? "Deleting..." : "Delete Category"}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -455,4 +520,4 @@ const Categories = () => {
   );
 };
 
-export default Categories; 
+export default Categories;
