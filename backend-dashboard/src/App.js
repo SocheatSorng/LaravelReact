@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import UserMenu from "./components/UserMenu";
@@ -21,9 +21,11 @@ import ViewUser from "./pages/ViewUser";
 import TestUser from "./pages/TestUser";
 import Dashboard from "./pages/Dashboard";
 import Categories from "./pages/Categories";
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import axios from "axios";
-import { checkApiHealth } from "./services/api";
+import { checkApiHealth, apiKeyService } from "./services/api";
+import { API_BASE_URL, getApiHeaders } from "./config/api.config";
 import PageList from "./pages/PageEditor/PageList";
 import PageEditor from "./pages/PageEditor";
 
@@ -38,7 +40,9 @@ function TestAPI() {
     setIsLoading(true);
     setError("");
     try {
-      const response = await axios.get("http://localhost:8000/api/users");
+      const response = await axios.get(`${API_BASE_URL}/users`, {
+        headers: getApiHeaders(),
+      });
       setTestResult(JSON.stringify(response.data, null, 2));
     } catch (err) {
       console.error("API Test Error:", err);
@@ -195,6 +199,57 @@ function TestAPI() {
   );
 }
 
+// Add a new API Key Setup component
+function ApiKeySetup() {
+  const [apiKey, setApiKey] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleSaveKey = () => {
+    if (apiKey.trim()) {
+      apiKeyService.setApiKey(apiKey);
+      setSuccess(true);
+    }
+  };
+
+  return (
+    <div className="container mt-5">
+      <div className="card">
+        <div className="card-header bg-primary text-white">
+          <h3>API Key Setup</h3>
+        </div>
+        <div className="card-body">
+          <p>Enter your API key to access protected endpoints:</p>
+
+          {success && (
+            <div className="alert alert-success">
+              API key saved successfully! You can now access protected
+              endpoints.
+            </div>
+          )}
+
+          <div className="mb-3">
+            <label htmlFor="apiKey" className="form-label">
+              API Key
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="apiKey"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your API key"
+            />
+          </div>
+
+          <button className="btn btn-primary" onClick={handleSaveKey}>
+            Save API Key
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   // Add CSS files from public folder
   React.useEffect(() => {
@@ -223,6 +278,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/test-api" element={<TestAPI />} />
         <Route path="/test-user" element={<TestUser />} />
+        <Route path="/setup-api-key" element={<ApiKeySetup />} />
         <Route
           path="/*"
           element={
@@ -243,7 +299,10 @@ function App() {
                       />
                       <Route path="products" element={<Products />} />
                       <Route path="products/:id/edit" element={<EditBook />} />
-                      <Route path="products/:id/edit-detail" element={<EditBookDetail />} />
+                      <Route
+                        path="products/:id/edit-detail"
+                        element={<EditBookDetail />}
+                      />
                       <Route path="purchases" element={<Purchases />} />
                       <Route path="categories" element={<Categories />} />
                       <Route path="books" element={<BookDetail />} />
@@ -261,7 +320,11 @@ function App() {
                       <Route path="pages" element={<PageList />} />
                       <Route path="pages/new" element={<PageEditor />} />
                       <Route path="pages/edit/:slug" element={<PageEditor />} />
-                      <Route path="pages/frontend/:page" element={<PageEditor frontendEdit={true} />} />
+                      <Route
+                        path="pages/frontend/:page"
+                        element={<PageEditor frontendEdit={true} />}
+                      />
+                      <Route path="settings" element={<Settings />} />
                     </Routes>
                   </div>
                 </div>

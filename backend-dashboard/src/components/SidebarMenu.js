@@ -97,6 +97,21 @@ function SidebarMenu() {
             <span className="nav-text">Pages</span>
           </Link>
         </li>
+
+        <li className="menu-title">System</li>
+
+        {/* Settings */}
+        <li className="nav-item">
+          <Link
+            to="/settings"
+            className={`nav-link ${isActive("/settings") ? "active" : ""}`}
+          >
+            <span className="nav-icon">
+              <span className="fs-24 align-middle">⚙️</span>
+            </span>
+            <span className="nav-text">Settings</span>
+          </Link>
+        </li>
       </ul>
     </div>
   );

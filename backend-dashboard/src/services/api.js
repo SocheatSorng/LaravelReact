@@ -1,4 +1,10 @@
 import axios from "axios";
+import {
+  API_BASE_URL,
+  API_KEY,
+  API_TIMEOUT,
+  DEFAULT_HEADERS,
+} from "../config/api.config";
 
 // Check if we're running in development or production
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -7,24 +13,17 @@ const isDevelopment = process.env.NODE_ENV === "development";
 const localStorageUrl = localStorage.getItem("api_url");
 
 // The API URL - with fallbacks
-const API_URL =
-  localStorageUrl ||
-  process.env.REACT_APP_API_URL ||
-  (isDevelopment ? "http://localhost:8000/api" : "/api");
+const API_URL = localStorageUrl || API_BASE_URL;
 
 console.log("Using API URL:", API_URL);
 
 // Create axios instance with configuration
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    "X-Requested-With": "XMLHttpRequest",
-  },
+  headers: DEFAULT_HEADERS,
   // Disable withCredentials as it might cause CORS issues
   withCredentials: false,
-  timeout: 10000, // Set a timeout for requests
+  timeout: API_TIMEOUT, // Set a timeout for requests
 });
 
 // Request interceptor for adding auth token
@@ -37,6 +36,9 @@ api.interceptors.request.use(
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
+
+    // Always add the API key to the headers
+    config.headers["X-API-Key"] = API_KEY;
 
     console.log(`API Request: ${config.method.toUpperCase()} ${config.url}`);
     return config;
@@ -168,7 +170,8 @@ export const orderService = {
         return {
           success: true,
           data: response.data.data,
-          message: response.data.message || "Order statistics retrieved successfully",
+          message:
+            response.data.message || "Order statistics retrieved successfully",
         };
       } else {
         throw new Error("Invalid response format");
@@ -184,7 +187,7 @@ export const orderService = {
           processingOrders: 0,
           shippedOrders: 0,
           deliveredOrders: 0,
-          cancelledOrders: 0
+          cancelledOrders: 0,
         },
         message: "Failed to fetch order statistics",
       };
@@ -624,18 +627,18 @@ export const bookService = {
   // Get categories
   getCategories: async () => {
     try {
-      const response = await api.get('/categories');
+      const response = await api.get("/categories");
       return {
         success: true,
         data: response.data.data || [],
-        message: 'Categories fetched successfully'
+        message: "Categories fetched successfully",
       };
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
       return {
         success: false,
         data: [],
-        message: error.response?.data?.message || 'Failed to fetch categories'
+        message: error.response?.data?.message || "Failed to fetch categories",
       };
     }
   },
@@ -761,7 +764,8 @@ export const userService = {
         return {
           success: true,
           data: response.data.data,
-          message: response.data.message || "User statistics retrieved successfully",
+          message:
+            response.data.message || "User statistics retrieved successfully",
         };
       } else {
         throw new Error("Invalid response format");
@@ -774,7 +778,7 @@ export const userService = {
         data: {
           adminCount: 1,
           newUsersCount: 12,
-          activeUsersCount: 3
+          activeUsersCount: 3,
         },
         message: "Using fallback user statistics",
       };
@@ -868,19 +872,22 @@ export const userService = {
           success: response.data.success === true,
           data: response.data.data,
           message: response.data.message || "User created successfully",
-          errors: response.data.errors
+          errors: response.data.errors,
         };
       } else {
         throw new Error("Invalid API response format");
       }
     } catch (error) {
       console.error("Error creating user:", error);
-      
+
       // Return a structured error response
       return {
         success: false,
-        message: error.response?.data?.message || error.message || "Failed to create user",
-        errors: error.response?.data?.errors || null
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create user",
+        errors: error.response?.data?.errors || null,
       };
     }
   },
@@ -950,20 +957,23 @@ export const pageContentService = {
   // Get all pages
   getPages: async () => {
     try {
-      const response = await api.get('/page-contents', {
-        timeout: 30000 // Extended timeout for potentially large content
+      const response = await api.get("/page-contents", {
+        timeout: 30000, // Extended timeout for potentially large content
       });
       return {
         success: true,
         data: response.data,
-        message: "Pages retrieved successfully"
+        message: "Pages retrieved successfully",
       };
     } catch (error) {
-      console.error('Error fetching pages:', error);
+      console.error("Error fetching pages:", error);
       return {
         success: false,
-        message: error.response?.data?.message || error.message || "Failed to fetch pages",
-        statusCode: error.response?.status
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch pages",
+        statusCode: error.response?.status,
       };
     }
   },
@@ -972,7 +982,7 @@ export const pageContentService = {
   getPage: async (slug) => {
     try {
       const response = await api.get(`/page-contents/${slug}`, {
-        timeout: 30000 // Extended timeout for potentially large content
+        timeout: 30000, // Extended timeout for potentially large content
       });
       return response.data;
     } catch (error) {
@@ -985,10 +995,10 @@ export const pageContentService = {
   createPage: async (pageData) => {
     try {
       console.log("Creating page with data:", pageData);
-      
+
       // Check if content needs to be stringified
       const preparedData = { ...pageData };
-      if (preparedData.content && typeof preparedData.content !== 'string') {
+      if (preparedData.content && typeof preparedData.content !== "string") {
         try {
           // Test if it's already a JSON string
           JSON.parse(JSON.stringify(preparedData.content));
@@ -996,29 +1006,32 @@ export const pageContentService = {
           console.error("Invalid content format:", e);
           return {
             success: false,
-            message: "Invalid content format - must be valid JSON"
+            message: "Invalid content format - must be valid JSON",
           };
         }
       }
-      
-      const response = await api.post('/page-contents', preparedData, {
-        timeout: 30000 // Extended timeout for potentially large content
+
+      const response = await api.post("/page-contents", preparedData, {
+        timeout: 30000, // Extended timeout for potentially large content
       });
-      
+
       console.log("Create page response:", response.data);
-      
+
       return {
         success: true,
         data: response.data,
-        message: "Page created successfully"
+        message: "Page created successfully",
       };
     } catch (error) {
-      console.error('Error creating page:', error);
+      console.error("Error creating page:", error);
       return {
         success: false,
-        message: error.response?.data?.message || error.message || "Failed to create page",
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create page",
         errors: error.response?.data?.errors || null,
-        statusCode: error.response?.status
+        statusCode: error.response?.status,
       };
     }
   },
@@ -1027,10 +1040,10 @@ export const pageContentService = {
   updatePage: async (slug, pageData) => {
     try {
       console.log(`Updating page '${slug}' with data:`, pageData);
-      
+
       // Check if content needs to be stringified
       const preparedData = { ...pageData };
-      if (preparedData.content && typeof preparedData.content !== 'string') {
+      if (preparedData.content && typeof preparedData.content !== "string") {
         try {
           // Test if it's already a JSON string
           JSON.parse(JSON.stringify(preparedData.content));
@@ -1038,29 +1051,32 @@ export const pageContentService = {
           console.error("Invalid content format:", e);
           return {
             success: false,
-            message: "Invalid content format - must be valid JSON"
+            message: "Invalid content format - must be valid JSON",
           };
         }
       }
-      
+
       const response = await api.put(`/page-contents/${slug}`, preparedData, {
-        timeout: 30000 // Extended timeout for potentially large content
+        timeout: 30000, // Extended timeout for potentially large content
       });
-      
+
       console.log("Update page response:", response.data);
-      
+
       return {
         success: true,
         data: response.data,
-        message: `Page '${slug}' updated successfully`
+        message: `Page '${slug}' updated successfully`,
       };
     } catch (error) {
       console.error(`Error updating page '${slug}':`, error);
       return {
         success: false,
-        message: error.response?.data?.message || error.message || "Failed to update page",
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to update page",
         errors: error.response?.data?.errors || null,
-        statusCode: error.response?.status
+        statusCode: error.response?.status,
       };
     }
   },
@@ -1072,14 +1088,17 @@ export const pageContentService = {
       return {
         success: true,
         data: response.data,
-        message: `Page '${slug}' deleted successfully`
+        message: `Page '${slug}' deleted successfully`,
       };
     } catch (error) {
       console.error(`Error deleting page '${slug}':`, error);
       return {
         success: false,
-        message: error.response?.data?.message || error.message || `Failed to delete page '${slug}'`,
-        statusCode: error.response?.status
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          `Failed to delete page '${slug}'`,
+        statusCode: error.response?.status,
       };
     }
   },
@@ -1088,23 +1107,53 @@ export const pageContentService = {
   getPublishedPage: async (slug) => {
     try {
       const response = await api.get(`/public/pages/${slug}`, {
-        timeout: 30000 // Extended timeout for potentially large content
+        timeout: 30000, // Extended timeout for potentially large content
       });
       return {
         success: true,
         data: response.data,
-        message: `Published page '${slug}' retrieved successfully`
+        message: `Published page '${slug}' retrieved successfully`,
       };
     } catch (error) {
       console.error(`Error fetching published page '${slug}':`, error);
       return {
         success: false,
-        message: error.response?.data?.message || error.message || `Failed to fetch published page '${slug}'`,
-        statusCode: error.response?.status
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          `Failed to fetch published page '${slug}'`,
+        statusCode: error.response?.status,
       };
     }
-  }
+  },
 };
 
-// Make sure we also export the API instance as the default
+// API Key Management
+export const apiKeyService = {
+  // Store API key
+  setApiKey: (apiKey) => {
+    localStorage.setItem("api_key", apiKey);
+    console.log("API key stored in local storage");
+    return true;
+  },
+
+  // Get stored API key
+  getApiKey: () => {
+    return localStorage.getItem("api_key");
+  },
+
+  // Remove API key
+  removeApiKey: () => {
+    localStorage.removeItem("api_key");
+    console.log("API key removed from local storage");
+    return true;
+  },
+
+  // Check if API key exists
+  hasApiKey: () => {
+    return !!localStorage.getItem("api_key");
+  },
+};
+
+// Export the axios instance for direct use
 export default api;

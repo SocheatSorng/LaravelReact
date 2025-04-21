@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { bookService, userService, orderService } from "../services/api";
 import axios from "axios";
+import { API_BASE_URL, getApiHeaders } from "../config/api.config";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -9,9 +10,9 @@ const Dashboard = () => {
     TotalUsers: 0,
     TotalOrders: 0,
     TotalPurchases: 0,
-    TotalRevenue: 0
+    TotalRevenue: 0,
   });
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,21 +21,26 @@ const Dashboard = () => {
     try {
       setIsLoading(true);
       setError(null); // Clear any previous errors
-      
+
       try {
-        // Use the dedicated dashboard stats endpoint
-        const response = await axios.get('http://localhost:8000/api/dashboard/stats');
-        
+        // Use the dedicated dashboard stats endpoint with API headers
+        const response = await axios.get(`${API_BASE_URL}/dashboard/stats`, {
+          headers: getApiHeaders(),
+        });
+
         if (response.data && response.data.success) {
           // Use the data from the response
           setStats(response.data.data);
           return;
         }
       } catch (dashboardError) {
-        console.error("Error fetching from dashboard endpoint:", dashboardError);
+        console.error(
+          "Error fetching from dashboard endpoint:",
+          dashboardError
+        );
         // Continue to fallback method
       }
-      
+
       // Fall back to individual API calls if the dashboard stats endpoint fails
       try {
         // Fetch books count
@@ -45,23 +51,27 @@ const Dashboard = () => {
         } else if (booksResponse.data?.data?.length) {
           bookCount = booksResponse.data.data.length;
         }
-        
+
         // Fetch categories count
         const categoriesResponse = await bookService.getCategories();
         let categoryCount = 0;
         if (categoriesResponse.success) {
           categoryCount = categoriesResponse.data.length;
         } else {
-          console.error("Error fetching categories:", categoriesResponse.message);
+          console.error(
+            "Error fetching categories:",
+            categoriesResponse.message
+          );
         }
-        
+
         // Fetch users count from user stats
         const usersResponse = await userService.getUserStats();
         let userCount = 0;
         if (usersResponse.success) {
-          userCount = usersResponse.data.adminCount + usersResponse.data.activeUsersCount;
+          userCount =
+            usersResponse.data.adminCount + usersResponse.data.activeUsersCount;
         }
-        
+
         // Fetch orders count from order stats
         const ordersResponse = await orderService.getOrderStats();
         let orderCount = 0;
@@ -69,18 +79,21 @@ const Dashboard = () => {
         if (ordersResponse.success) {
           orderCount = ordersResponse.data.totalOrders;
         }
-        
-        // Fetch purchases count (assuming similar structure to orders)
+
+        // Fetch purchases count with API key header
         let purchaseCount = 0;
         try {
-          const purchasesResponse = await axios.get('http://localhost:8000/api/purchases');
+          const purchasesResponse = await axios.get(
+            `${API_BASE_URL}/purchases`,
+            { headers: getApiHeaders() }
+          );
           if (purchasesResponse.data?.data?.length) {
             purchaseCount = purchasesResponse.data.data.length;
           }
         } catch (purchaseError) {
           console.error("Error fetching purchases:", purchaseError);
         }
-        
+
         // Update the state with actual data
         setStats({
           TotalBooks: bookCount,
@@ -88,16 +101,16 @@ const Dashboard = () => {
           TotalUsers: userCount,
           TotalOrders: orderCount,
           TotalPurchases: purchaseCount,
-          TotalRevenue: totalRevenue
+          TotalRevenue: totalRevenue,
         });
       } catch (fallbackError) {
         console.error("Error in fallback fetching:", fallbackError);
-        
+
         // Set a user-friendly error message
         setError(
           "Unable to load dashboard data. Please check your network connection and try again."
         );
-        
+
         // Fall back to zero values if all API calls fail
         setStats({
           TotalBooks: 0,
@@ -105,7 +118,7 @@ const Dashboard = () => {
           TotalUsers: 0,
           TotalOrders: 0,
           TotalPurchases: 0,
-          TotalRevenue: 0
+          TotalRevenue: 0,
         });
       }
     } finally {
@@ -124,10 +137,7 @@ const Dashboard = () => {
         <p>{error}</p>
         <hr />
         <p className="mb-0">Please try refreshing or click the button below.</p>
-        <button 
-          className="btn btn-primary mt-3" 
-          onClick={fetchStats}
-        >
+        <button className="btn btn-primary mt-3" onClick={fetchStats}>
           <i className="bi bi-arrow-clockwise me-1"></i> Retry
         </button>
       </div>
@@ -156,12 +166,16 @@ const Dashboard = () => {
                   </div>
                   <div className="col-6 text-end">
                     <p className="text-muted mb-0 text-truncate">Books</p>
-                    <h3 className="text-dark mt-1 mb-0">{stats.TotalBooks.toLocaleString()}</h3>
+                    <h3 className="text-dark mt-1 mb-0">
+                      {stats.TotalBooks.toLocaleString()}
+                    </h3>
                   </div>
                 </div>
               </div>
               <div className="card-footer py-2 bg-light">
-                <a href="/products" className="text-reset fw-semibold fs-12">View Details</a>
+                <a href="/products" className="text-reset fw-semibold fs-12">
+                  View Details
+                </a>
               </div>
             </div>
           </div>
@@ -177,12 +191,16 @@ const Dashboard = () => {
                   </div>
                   <div className="col-6 text-end">
                     <p className="text-muted mb-0 text-truncate">Categories</p>
-                    <h3 className="text-dark mt-1 mb-0">{stats.TotalCategories.toLocaleString()}</h3>
+                    <h3 className="text-dark mt-1 mb-0">
+                      {stats.TotalCategories.toLocaleString()}
+                    </h3>
                   </div>
                 </div>
               </div>
               <div className="card-footer py-2 bg-light">
-                <a href="/categories" className="text-reset fw-semibold fs-12">View Details</a>
+                <a href="/categories" className="text-reset fw-semibold fs-12">
+                  View Details
+                </a>
               </div>
             </div>
           </div>
@@ -198,12 +216,16 @@ const Dashboard = () => {
                   </div>
                   <div className="col-6 text-end">
                     <p className="text-muted mb-0 text-truncate">Users</p>
-                    <h3 className="text-dark mt-1 mb-0">{stats.TotalUsers.toLocaleString()}</h3>
+                    <h3 className="text-dark mt-1 mb-0">
+                      {stats.TotalUsers.toLocaleString()}
+                    </h3>
                   </div>
                 </div>
               </div>
               <div className="card-footer py-2 bg-light">
-                <a href="/users" className="text-reset fw-semibold fs-12">View Details</a>
+                <a href="/users" className="text-reset fw-semibold fs-12">
+                  View Details
+                </a>
               </div>
             </div>
           </div>
@@ -219,12 +241,16 @@ const Dashboard = () => {
                   </div>
                   <div className="col-6 text-end">
                     <p className="text-muted mb-0 text-truncate">Orders</p>
-                    <h3 className="text-dark mt-1 mb-0">{stats.TotalOrders.toLocaleString()}</h3>
+                    <h3 className="text-dark mt-1 mb-0">
+                      {stats.TotalOrders.toLocaleString()}
+                    </h3>
                   </div>
                 </div>
               </div>
               <div className="card-footer py-2 bg-light">
-                <a href="/orders" className="text-reset fw-semibold fs-12">View Details</a>
+                <a href="/orders" className="text-reset fw-semibold fs-12">
+                  View Details
+                </a>
               </div>
             </div>
           </div>
@@ -240,12 +266,16 @@ const Dashboard = () => {
                   </div>
                   <div className="col-6 text-end">
                     <p className="text-muted mb-0 text-truncate">Purchases</p>
-                    <h3 className="text-dark mt-1 mb-0">{stats.TotalPurchases.toLocaleString()}</h3>
+                    <h3 className="text-dark mt-1 mb-0">
+                      {stats.TotalPurchases.toLocaleString()}
+                    </h3>
                   </div>
                 </div>
               </div>
               <div className="card-footer py-2 bg-light">
-                <a href="/purchases" className="text-reset fw-semibold fs-12">View Details</a>
+                <a href="/purchases" className="text-reset fw-semibold fs-12">
+                  View Details
+                </a>
               </div>
             </div>
           </div>
@@ -261,12 +291,20 @@ const Dashboard = () => {
                   </div>
                   <div className="col-6 text-end">
                     <p className="text-muted mb-0 text-truncate">Revenue</p>
-                    <h3 className="text-dark mt-1 mb-0">${stats.TotalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h3>
+                    <h3 className="text-dark mt-1 mb-0">
+                      $
+                      {stats.TotalRevenue.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </h3>
                   </div>
                 </div>
               </div>
               <div className="card-footer py-2 bg-light">
-                <span className="text-muted fw-semibold fs-12">From Orders</span>
+                <span className="text-muted fw-semibold fs-12">
+                  From Orders
+                </span>
               </div>
             </div>
           </div>
@@ -276,4 +314,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
