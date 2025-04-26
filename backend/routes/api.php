@@ -15,6 +15,8 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\PageContentController;
 use App\Http\Controllers\API\ApiKeyController;
+use App\Http\Controllers\API\CustomerAccountController;
+use App\Http\Controllers\API\CustomerOrderController;
 use App\Http\Middleware\ValidateApiKey;
 use App\Http\Middleware\AdminOnly;
 use Illuminate\Support\Str;
@@ -30,26 +32,6 @@ use App\Models\ApiKey;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
-// Temporary route to generate an API key (remove in production)
-Route::get('/generate-api-key', function () {
-    $key = Str::random(60);
-    $apiKey = ApiKey::create([
-        'name' => 'Default API Key',
-        'key' => $key,
-        'active' => true
-    ]);
-    
-    return response()->json([
-        'success' => true,
-        'data' => [
-            'id' => $apiKey->id,
-            'key' => $apiKey->key,
-            'name' => $apiKey->name
-        ],
-        'message' => 'API key generated successfully'
-    ]);
-});
 
 // Authentication routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -181,3 +163,34 @@ Route::prefix('public')->group(function () {
 
 // Keep the existing public route for backward compatibility
 Route::get('/pages/{slug}', [PageContentController::class, 'getPublishedPage']);
+
+// Customer Account routes
+Route::prefix('customer')->middleware('api.key')->group(function () {
+    // Public routes (no auth required)
+    Route::post('/register', [CustomerAccountController::class, 'register']);
+    Route::post('/login', [CustomerAccountController::class, 'login']);
+    
+    // Protected routes (auth required)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [CustomerAccountController::class, 'logout']);
+        Route::get('/profile', [CustomerAccountController::class, 'show']);
+        Route::put('/profile', [CustomerAccountController::class, 'update']);
+        Route::post('/change-password', [CustomerAccountController::class, 'changePassword']);
+        Route::post('/deactivate', [CustomerAccountController::class, 'deactivate']);
+        
+        // Customer order routes
+        Route::prefix('orders')->group(function () {
+            Route::post('/', [CustomerOrderController::class, 'placeOrder']);
+            Route::get('/', [CustomerOrderController::class, 'getMyOrders']);
+            Route::get('/{id}', [CustomerOrderController::class, 'getMyOrder']);
+            Route::post('/{id}/cancel', [CustomerOrderController::class, 'cancelMyOrder']);
+        });
+    });
+    
+    // Admin-only routes
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+        Route::get('/accounts', [CustomerAccountController::class, 'index']);
+        Route::get('/accounts/{id}', [CustomerAccountController::class, 'getById']);
+        Route::post('/accounts/{id}/toggle-activation', [CustomerAccountController::class, 'toggleActivation']);
+    });
+});

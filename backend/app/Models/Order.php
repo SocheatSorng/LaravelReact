@@ -12,6 +12,7 @@ class Order extends Model
 
     protected $fillable = [
         'UserID',
+        'AccountID',
         'OrderDate',
         'TotalAmount',
         'Status',
@@ -31,6 +32,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'UserID', 'UserID');
+    }
+
+    public function customerAccount()
+    {
+        return $this->belongsTo(CustomerAccount::class, 'AccountID', 'AccountID');
     }
 
     public function orderDetails()
