@@ -11,7 +11,7 @@ class Cart extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'UserID',
+        'AccountID',
         'BookID',
         'Quantity',
         'CreatedAt'
@@ -24,7 +24,7 @@ class Cart extends Model
     // Relationships
     public function user()
     {
-        return $this->belongsTo(User::class, 'UserID', 'UserID');
+        return $this->belongsTo(CustomerAccount::class, 'AccountID', 'AccountID');
     }
 
     public function book()

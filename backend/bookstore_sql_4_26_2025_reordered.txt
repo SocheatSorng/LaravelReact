@@ -1,0 +1,382 @@
+-- --------------------------------------------------------
+-- Host:                         127.0.0.1
+-- Server version:               8.0.30 - MySQL Community Server - GPL
+-- Server OS:                    Win64
+-- HeidiSQL Version:             12.1.0.6537
+-- --------------------------------------------------------
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+-- Dumping structure for table bookstore_db.cache
+CREATE TABLE IF NOT EXISTS `cache` (
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expiration` int NOT NULL,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.cache: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.cache_locks
+CREATE TABLE IF NOT EXISTS `cache_locks` (
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expiration` int NOT NULL,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.cache_locks: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.failed_jobs
+CREATE TABLE IF NOT EXISTS `failed_jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `exception` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.failed_jobs: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.jobs
+CREATE TABLE IF NOT EXISTS `jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `queue` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `attempts` tinyint unsigned NOT NULL,
+  `reserved_at` int unsigned DEFAULT NULL,
+  `available_at` int unsigned NOT NULL,
+  `created_at` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `jobs_queue_index` (`queue`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.jobs: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.job_batches
+CREATE TABLE IF NOT EXISTS `job_batches` (
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `total_jobs` int NOT NULL,
+  `pending_jobs` int NOT NULL,
+  `failed_jobs` int NOT NULL,
+  `failed_job_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `options` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `cancelled_at` int DEFAULT NULL,
+  `created_at` int NOT NULL,
+  `finished_at` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.job_batches: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.migrations
+CREATE TABLE IF NOT EXISTS `migrations` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `batch` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.migrations: ~6 rows (approximately)
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
+	(1, '0001_01_01_000000_create_users_table', 1),
+	(2, '0001_01_01_000001_create_cache_table', 1),
+	(3, '0001_01_01_000002_create_jobs_table', 1),
+	(4, '2025_03_30_052344_create_page_contents_table', 2),
+	(6, '2025_03_30_060024_create_page_contents_table', 3),
+	(7, '2025_03_30_074037_create_page_contents_table', 4);
+
+-- Dumping structure for table bookstore_db.page_contents
+CREATE TABLE IF NOT EXISTS `page_contents` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `content` json DEFAULT NULL,
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'page',
+  `status` enum('draft','published','archived') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'draft',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `page_contents_slug_unique` (`slug`),
+  KEY `page_contents_slug_type_status_index` (`slug`,`type`,`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.page_contents: ~2 rows (approximately)
+INSERT INTO `page_contents` (`id`, `slug`, `title`, `description`, `content`, `type`, `status`, `created_at`, `updated_at`) VALUES
+	(1, 'blog-page', 'Blog Page', 'The main blog listing page', '{"root": {"props": []}, "zones": [], "content": []}', 'blog', 'published', '2025-03-30 16:44:37', '2025-03-30 16:44:37'),
+	(2, 'Test', 'Discover', 'Page description goes here', '{"root": {"props": {"title": "New Page 2", "description": "Page description goes here"}}, "zones": {"Grid-1a448874-037f-4752-9270-4f55788ef93a:column-1": [{"type": "Card", "props": {"id": "Card-c16b1845-be3a-4471-b1ac-e7b860fff70f", "title": "Sarah T.", "content": "The personalized recommendations were spot-on! I\'ve discovered so many new authors throught this bookstore.", "linkUrl": "", "imageUrl": "", "linkText": ""}}], "Grid-1a448874-037f-4752-9270-4f55788ef93a:column-2": [{"type": "Card", "props": {"id": "Card-098b7ee9-350e-498e-b94c-d2288b21b38c", "title": "James M.", "content": "Fast shipping and the books always arrive in perfect condition. My go-to bookstore for all my reading needs!", "linkUrl": "", "imageUrl": "", "linkText": ""}}], "Grid-ac46bd59-55bf-45b3-a1ea-ddcc0247ed2f:column-1": [{"type": "Card", "props": {"id": "Card-56f272fa-7676-4c4a-bf9a-c51980a9a4a8", "title": "Fiction Bestsellers", "content": "Explore our handpicked selection of fiction bestsellers, from thrilling mysteries to heartwarming romance.", "linkUrl": "/categories/fiction", "imageUrl": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=500&auto=format&fit=crop", "linkText": "View Collection"}}], "Grid-ac46bd59-55bf-45b3-a1ea-ddcc0247ed2f:column-2": [{"type": "Card", "props": {"id": "Card-7f1126f3-883c-4d1e-ada2-fe82378f0e2d", "title": "Non-Fiction Essentials", "content": "Discover thought-provoking biographics, insightful self-help books, and educational titles.", "linkUrl": "/categories/non-fiction", "imageUrl": "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=1998&auto=format&fit=crop", "linkText": "Explore Non-Ficiton"}}], "Grid-ac46bd59-55bf-45b3-a1ea-ddcc0247ed2f:column-3": [{"type": "Card", "props": {"id": "Card-c59a59ce-8ca1-4392-964b-ce593f173179", "title": "Children\'s Books", "content": "Magical stories and educational content for young readers of all ages.", "linkUrl": "/categories/children", "imageUrl": "https://images.unsplash.com/photo-1512977851705-67cee7c22188?q=80&w=2070&auto=format&fit=crop", "linkText": "See Collection"}}], "TwoColumnLayout-dd45b8f4-98f6-48c2-ac9e-ef0e44bb9361:left-column": [{"type": "Heading", "props": {"id": "Heading-8576df2d-31e1-4eab-9e6b-f9009e075e1b", "text": "Why Choose Our Bookstore", "level": "h2", "alignment": "left"}}, {"type": "TextBlock", "props": {"id": "TextBlock-686a4597-9ff9-4111-b5fe-b4459d3fe394", "content": "Our bookstore offers a carefully curated selection of books across all genres. We believe in the power of reading to transform lives, spark imagination, and foster understanding. With our expert recommendations and community-focused approach, we help you find books that truly resonate with you.", "heading": "A Reader\'s Paradise Since 2010", "textAlign": "left"}}], "TwoColumnLayout-dd45b8f4-98f6-48c2-ac9e-ef0e44bb9361:right-column": [{"type": "Image", "props": {"id": "Image-0a77c0d3-e2c4-4dbd-b2dd-984087894eb1", "alt": "Inside our bookstore", "src": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070&auto=format&fit=crop", "width": "100%", "height": "auto"}}]}, "content": [{"type": "Hero", "props": {"id": "Hero-e3e67392-b1e0-441a-8bc2-e777819ccaa7", "title": "Discover Your Next Favorite Book", "subtitle": "Curated collections for every reader, with fast shipping and personalized recommendations", "buttonLink": "/books", "buttonText": "Browse Books", "backgroundImage": "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2070&auto=format&fit=crop"}}, {"type": "Logos", "props": {"id": "Logos-8265251c-f398-4cc2-8e3a-2d06c6d20917", "logos": [{"alt": "Company 1", "url": "#", "imageUrl": "https://via.placeholder.com/150x80"}, {"alt": "Company 2", "url": "#", "imageUrl": "https://via.placeholder.com/150x80"}, {"alt": "Company 3", "url": "#", "imageUrl": "https://via.placeholder.com/150x80"}, {"alt": "Company 4", "url": "#", "imageUrl": "https://via.placeholder.com/150x80"}], "title": "Trusted by"}}, {"type": "Grid", "props": {"id": "Grid-ac46bd59-55bf-45b3-a1ea-ddcc0247ed2f", "gap": "20px", "columns": 3}}, {"type": "TwoColumnLayout", "props": {"id": "TwoColumnLayout-dd45b8f4-98f6-48c2-ac9e-ef0e44bb9361", "leftColumnWidth": "50%"}}, {"type": "Heading", "props": {"id": "Heading-0db33496-4f39-43b8-9037-efaeff2c8490", "text": "What our Customers Say", "level": "h2", "alignment": "center"}}, {"type": "Grid", "props": {"id": "Grid-1a448874-037f-4752-9270-4f55788ef93a", "gap": "20px", "columns": 2}}, {"type": "Stats", "props": {"id": "Stats-af253767-58db-4aec-ad45-7f22d988b908", "stats": [{"label": "Books", "value": "10000+", "description": "in our collection"}, {"label": "Happy Customers", "value": "5000+", "description": "and couting"}, {"label": "Author Events", "value": "300+", "description": "hosted since 2010"}, {"label": "Customer Support", "value": "24", "description": "always available"}], "title": "Our Bookstore in Numbers", "columns": 4}}, {"type": "CallToAction", "props": {"id": "CallToAction-ddc9aaf6-1ae1-4fc5-abc1-edcf7a4a2cc5", "title": "Join Our Book Club", "buttonLink": "/subscribe", "buttonText": "Subscribe now", "description": "Subscribe to our newsletter for reading recommendations exclusive discounts, and updates on author events.", "backgroundColor": "#f8f9fa"}}]}', 'page', 'published', '2025-03-30 18:16:12', '2025-03-30 19:05:41');
+
+-- Dumping structure for table bookstore_db.password_reset_tokens
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.password_reset_tokens: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.users
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `users_email_unique` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.users: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.sessions
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_activity` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sessions_user_id_index` (`user_id`),
+  KEY `sessions_last_activity_index` (`last_activity`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.sessions: ~3 rows (approximately)
+INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
+	('8zefB3q45tvRjc8oxFWg1PwyeMOn66h7IcWyKvHM', NULL, '192.168.0.117', 'curl/8.9.1', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiY2lZSEV1MFBaN3RJcjNtUE1LY3pUYlZ6RThTMEZmbHpaYmhSOVdSOSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjU6Imh0dHA6Ly8xOTIuMTY4LjAuMTE3OjgwMDAiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1745623932),
+	('hOjfwK2g0C2oCxmwBPv0YOLhgXMKEkwzkFKbOWAi', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiRkhOdHJnc1puTTkxT1B5em5sVXR6SFA2N3NkOXVVZzlVR0RYbkZSTiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1744901439),
+	('Jf4qsIjSoeT1kU8Qnvn0EueRNoMo9LD3rnAIq3Pe', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiMVVxYmg1UGp4YThpS0VjVkFVREhLdTgyUjlvMDdTdFpwcWR5YmtXaSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1743173759),
+	('WpiUjqtd1BP6SPxrDTmxyPnjBgsILuWz7dZLxQvw', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiNFpnclRjdUxSY3Q0VDhQenZOQXJvVFdRYm9MNlI0TkFyeEd6SVJ1VCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1743127396);
+
+-- Dumping structure for table bookstore_db.tbCategory
+CREATE TABLE IF NOT EXISTS `tbCategory` (
+  `CategoryID` int NOT NULL AUTO_INCREMENT,
+  `Name` varchar(50) NOT NULL,
+  `Description` text,
+  `Image` varchar(255) DEFAULT NULL,
+  `CreatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`CategoryID`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbCategory: ~0 rows (approximately)
+INSERT INTO `tbCategory` (`CategoryID`, `Name`, `Description`, `Image`, `CreatedAt`) VALUES
+	(1, 'Updated Romance Category', 'Updated description', NULL, '2025-02-21 02:05:24'),
+	(3, 'Movie', 'Fantasy', NULL, '2025-04-17 16:57:20');
+
+-- Dumping structure for table bookstore_db.tbUser
+CREATE TABLE IF NOT EXISTS `tbUser` (
+  `UserID` int NOT NULL AUTO_INCREMENT,
+  `FirstName` varchar(50) NOT NULL,
+  `LastName` varchar(50) NOT NULL,
+  `Email` varchar(100) NOT NULL,
+  `Password` varchar(255) NOT NULL,
+  `Phone` varchar(15) DEFAULT NULL,
+  `Address` text,
+  `Role` enum('admin','user') DEFAULT 'user',
+  `CreatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`UserID`),
+  UNIQUE KEY `Email` (`Email`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbUser: ~4 rows (approximately)
+INSERT INTO `tbUser` (`UserID`, `FirstName`, `LastName`, `Email`, `Password`, `Phone`, `Address`, `Role`, `CreatedAt`) VALUES
+	(6, 'Admin', 'User', 'admin@admin.com', '$2y$10$XiQ5PlWiAmMo6MTEuxz/Ze4VGI3pv4OC9dQ5t0tbIxsO5g8oN7IDm', NULL, NULL, 'admin', '2025-02-20 12:32:42'),
+	(7, 'John', 'Doe', 'john@gmail.com', '$2y$12$XwYJKMGUdfRhIfrObSySk.IlWo1mOQAL9Fup000gJtVuRQpIEWFs.', '1234567890', '123 Main St', 'user', '2025-03-28 13:35:22'),
+	(8, 'Doe', 'John', 'john@example.com', '$2y$12$NVpMues96.26Bf4SrxMRJuWp.ai5DCj5dnz/yDYEKc2vliSkEIj5u', '1234567890', '123 Main St', 'user', '2025-03-28 14:35:27');
+
+-- Dumping structure for table bookstore_db.tbpage_contents
+CREATE TABLE IF NOT EXISTS `tbpage_contents` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `page_slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content` json NOT NULL,
+  `status` enum('draft','published') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'draft',
+  `created_by` bigint unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `tbpage_contents_page_slug_unique` (`page_slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table bookstore_db.tbpage_contents: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.tbBook
+CREATE TABLE IF NOT EXISTS `tbBook` (
+  `BookID` int NOT NULL AUTO_INCREMENT,
+  `CategoryID` int DEFAULT NULL,
+  `Title` varchar(255) NOT NULL,
+  `Author` varchar(100) NOT NULL,
+  `Price` decimal(10,2) NOT NULL,
+  `StockQuantity` int DEFAULT '0',
+  `Image` varchar(255) DEFAULT NULL,
+  `CreatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`BookID`),
+  KEY `CategoryID` (`CategoryID`),
+  CONSTRAINT `tbBook_ibfk_1` FOREIGN KEY (`CategoryID`) REFERENCES `tbCategory` (`CategoryID`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbBook: ~3 rows (approximately)
+INSERT INTO `tbBook` (`BookID`, `CategoryID`, `Title`, `Author`, `Price`, `StockQuantity`, `Image`, `CreatedAt`) VALUES
+	(1, 1, 'Book1', 'Me', 10.00, 107, 'http://laravel-react-picture.s3.ap-southeast-1.amazonaws.com/Picture/book1.jpg', '2025-02-21 02:15:29'),
+	(3, 1, 'The New Book', 'John Doe', 29.99, 98, 'http://laravel-react-picture.s3.ap-southeast-1.amazonaws.com/Picture/book1.jpg', '2025-03-28 02:38:23'),
+	(4, 3, 'Updated Book Title', 'Claude', 19.99, 100, NULL, '2025-04-17 16:52:33'),
+	(5, 3, 'Test Book', 'Tester', 15.99, 50, NULL, '2025-04-25 23:35:05');
+
+-- Dumping structure for table bookstore_db.tbOrder
+CREATE TABLE IF NOT EXISTS `tbOrder` (
+  `OrderID` int NOT NULL AUTO_INCREMENT,
+  `UserID` int DEFAULT NULL,
+  `OrderDate` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `TotalAmount` decimal(10,2) NOT NULL,
+  `Status` enum('pending','processing','shipped','delivered','cancelled') DEFAULT 'pending',
+  `ShippingAddress` text,
+  `PaymentMethod` varchar(50) DEFAULT NULL,
+  `GuestEmail` varchar(100) DEFAULT NULL,
+  `GuestName` varchar(100) DEFAULT NULL,
+  `GuestPhone` varchar(15) DEFAULT NULL,
+  PRIMARY KEY (`OrderID`),
+  KEY `UserID` (`UserID`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbOrder: ~2 rows (approximately)
+INSERT INTO `tbOrder` (`OrderID`, `UserID`, `OrderDate`, `TotalAmount`, `Status`, `ShippingAddress`, `PaymentMethod`, `GuestEmail`, `GuestName`, `GuestPhone`) VALUES
+	(2, 7, '2025-03-27 17:00:00', 89.97, 'pending', 'Test Street', 'credit_card', NULL, NULL, NULL),
+	(4, NULL, '2025-03-29 08:40:11', 59.98, 'pending', 'abc', 'Cash', 'abc@gmail.com', 'ABC', '012345');
+
+-- Dumping structure for table bookstore_db.tbBookDetail
+CREATE TABLE IF NOT EXISTS `tbBookDetail` (
+  `DetailID` int NOT NULL AUTO_INCREMENT,
+  `BookID` int DEFAULT NULL,
+  `ISBN10` varchar(10) DEFAULT NULL,
+  `ISBN13` varchar(17) DEFAULT NULL,
+  `Publisher` varchar(255) DEFAULT NULL,
+  `PublishYear` int DEFAULT NULL,
+  `Edition` varchar(50) DEFAULT NULL,
+  `PageCount` int DEFAULT NULL,
+  `Language` varchar(50) DEFAULT NULL,
+  `Format` enum('Hardcover','Paperback','Ebook','Audiobook') DEFAULT NULL,
+  `Dimensions` varchar(100) DEFAULT NULL,
+  `Weight` decimal(6,2) DEFAULT NULL,
+  `Description` text,
+  PRIMARY KEY (`DetailID`),
+  UNIQUE KEY `BookID` (`BookID`),
+  CONSTRAINT `tbBookDetail_ibfk_1` FOREIGN KEY (`BookID`) REFERENCES `tbBook` (`BookID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbBookDetail: ~0 rows (approximately)
+INSERT INTO `tbBookDetail` (`DetailID`, `BookID`, `ISBN10`, `ISBN13`, `Publisher`, `PublishYear`, `Edition`, `PageCount`, `Language`, `Format`, `Dimensions`, `Weight`, `Description`) VALUES
+	(1, 1, '0123456789', '9781234567890', 'Example Publisher', 2024, 'First Edition', 350, 'English', 'Paperback', '6 x 9 inches', 0.50, 'Detailed description of the book...'),
+	(3, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	(4, 5, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+-- Dumping structure for table bookstore_db.tbCart
+CREATE TABLE IF NOT EXISTS `tbCart` (
+  `CartID` int NOT NULL AUTO_INCREMENT,
+  `UserID` int DEFAULT NULL,
+  `BookID` int DEFAULT NULL,
+  `Quantity` int NOT NULL,
+  `CreatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`CartID`),
+  KEY `UserID` (`UserID`),
+  KEY `BookID` (`BookID`),
+  CONSTRAINT `tbCart_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `tbUser` (`UserID`),
+  CONSTRAINT `tbCart_ibfk_2` FOREIGN KEY (`BookID`) REFERENCES `tbBook` (`BookID`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbCart: ~0 rows (approximately)
+INSERT INTO `tbCart` (`CartID`, `UserID`, `BookID`, `Quantity`, `CreatedAt`) VALUES
+	(1, 7, 1, 15, '2025-03-28 14:30:59');
+
+-- Dumping structure for table bookstore_db.tbOrderDetail
+CREATE TABLE IF NOT EXISTS `tbOrderDetail` (
+  `OrderDetailID` int NOT NULL AUTO_INCREMENT,
+  `OrderID` int DEFAULT NULL,
+  `BookID` int DEFAULT NULL,
+  `Quantity` int NOT NULL,
+  `Price` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`OrderDetailID`),
+  KEY `OrderID` (`OrderID`),
+  KEY `BookID` (`BookID`),
+  CONSTRAINT `tbOrderDetail_ibfk_1` FOREIGN KEY (`OrderID`) REFERENCES `tbOrder` (`OrderID`),
+  CONSTRAINT `tbOrderDetail_ibfk_2` FOREIGN KEY (`BookID`) REFERENCES `tbBook` (`BookID`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbOrderDetail: ~3 rows (approximately)
+INSERT INTO `tbOrderDetail` (`OrderDetailID`, `OrderID`, `BookID`, `Quantity`, `Price`) VALUES
+	(1, 2, 1, 1, 29.99),
+	(3, 2, 1, 2, 29.99),
+	(5, 4, 3, 2, 29.99);
+
+-- Dumping structure for table bookstore_db.tbPurchase
+CREATE TABLE IF NOT EXISTS `tbPurchase` (
+  `PurchaseID` int NOT NULL AUTO_INCREMENT,
+  `BookID` int NOT NULL,
+  `Quantity` int NOT NULL,
+  `UnitPrice` decimal(10,2) NOT NULL,
+  `PaymentMethod` varchar(50) NOT NULL,
+  `OrderDate` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`PurchaseID`),
+  KEY `BookID` (`BookID`),
+  CONSTRAINT `tbPurchase_ibfk_1` FOREIGN KEY (`BookID`) REFERENCES `tbBook` (`BookID`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbPurchase: ~0 rows (approximately)
+INSERT INTO `tbPurchase` (`PurchaseID`, `BookID`, `Quantity`, `UnitPrice`, `PaymentMethod`, `OrderDate`) VALUES
+	(1, 1, 10, 25.99, 'bank_transfer', '2025-03-28 07:22:25');
+
+-- Dumping structure for table bookstore_db.tbReview
+CREATE TABLE IF NOT EXISTS `tbReview` (
+  `ReviewID` int NOT NULL AUTO_INCREMENT,
+  `UserID` int DEFAULT NULL,
+  `BookID` int DEFAULT NULL,
+  `Rating` int NOT NULL,
+  `Comment` text,
+  `CreatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ReviewID`),
+  KEY `UserID` (`UserID`),
+  KEY `BookID` (`BookID`),
+  CONSTRAINT `tbReview_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `tbUser` (`UserID`),
+  CONSTRAINT `tbReview_ibfk_2` FOREIGN KEY (`BookID`) REFERENCES `tbBook` (`BookID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbReview: ~0 rows (approximately)
+
+-- Dumping structure for table bookstore_db.tbWishlist
+CREATE TABLE IF NOT EXISTS `tbWishlist` (
+  `WishlistID` int NOT NULL AUTO_INCREMENT,
+  `UserID` int DEFAULT NULL,
+  `BookID` int DEFAULT NULL,
+  `CreatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`WishlistID`),
+  KEY `UserID` (`UserID`),
+  KEY `BookID` (`BookID`),
+  CONSTRAINT `tbWishlist_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `tbUser` (`UserID`),
+  CONSTRAINT `tbWishlist_ibfk_2` FOREIGN KEY (`BookID`) REFERENCES `tbBook` (`BookID`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table bookstore_db.tbWishlist: ~0 rows (approximately)
+INSERT INTO `tbWishlist` (`WishlistID`, `UserID`, `BookID`, `CreatedAt`) VALUES
+	(1, 7, 1, '2025-03-28 14:41:22');
+
+/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
+/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
+/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;

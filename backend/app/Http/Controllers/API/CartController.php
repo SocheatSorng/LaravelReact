@@ -17,8 +17,8 @@ class CartController extends Controller
             $query = Cart::with(['book', 'user']);
 
             // Filter by user
-            if ($request->has('user_id')) {
-                $query->where('UserID', $request->user_id);
+            if ($request->has('account_id')) {
+                $query->where('AccountID', $request->account_id);
             }
 
             $cartItems = $query->get();
@@ -39,7 +39,7 @@ class CartController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'UserID' => 'required|exists:tbUser,UserID',
+            'AccountID' => 'required|exists:tbCustomerAccount,AccountID',
             'BookID' => 'required|exists:tbBook,BookID',
             'Quantity' => 'required|integer|min:1'
         ]);
@@ -64,7 +64,7 @@ class CartController extends Controller
             }
 
             // Check if item already exists in cart
-            $existingItem = Cart::where('UserID', $request->UserID)
+            $existingItem = Cart::where('AccountID', $request->AccountID)
                                ->where('BookID', $request->BookID)
                                ->first();
 
@@ -176,7 +176,7 @@ class CartController extends Controller
     {
         try {
             $cartItems = Cart::with(['book', 'user'])
-                            ->where('UserID', $userId)
+                            ->where('AccountID', $userId)
                             ->get();
 
             return response()->json([
@@ -195,7 +195,7 @@ class CartController extends Controller
     public function clearCart($userId)
     {
         try {
-            Cart::where('UserID', $userId)->delete();
+            Cart::where('AccountID', $userId)->delete();
 
             return response()->json([
                 'success' => true,
