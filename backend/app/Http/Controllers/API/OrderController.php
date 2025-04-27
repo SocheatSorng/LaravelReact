@@ -15,7 +15,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Order::with(['user', 'orderDetails.book']);
+            $query = Order::with(['customerAccount', 'orderDetails.book']);
 
             // Filter by status
             if ($request->has('status')) {
@@ -55,14 +55,15 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'UserID' => 'required|exists:tbUser,UserID',
-            'TotalAmount' => 'required|numeric|min:0',
+            'AccountID' => 'required|exists:tbCustomerAccount,AccountID',
+            'OrderTotal' => 'required|numeric|min:0',
             'ShippingAddress' => 'required|string',
             'PaymentMethod' => 'required|string',
-            'items' => 'required|array|min:1',
-            'items.*.BookID' => 'required|exists:tbBook,BookID',
-            'items.*.Quantity' => 'required|integer|min:1',
-            'items.*.Price' => 'required|numeric|min:0'
+            'OrderItems' => 'required|array|min:1',
+            'OrderItems.*.BookID' => 'required|exists:tbBook,BookID',
+            'OrderItems.*.Quantity' => 'required|integer|min:1',
+            'OrderItems.*.Price' => 'required|numeric|min:0',
+            'Notes' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -77,15 +78,15 @@ class OrderController extends Controller
 
             // Create order
             $order = Order::create([
-                'UserID' => $request->UserID,
-                'TotalAmount' => $request->TotalAmount,
+                'AccountID' => $request->AccountID,
+                'TotalAmount' => $request->OrderTotal,
                 'Status' => 'pending',
                 'ShippingAddress' => $request->ShippingAddress,
                 'PaymentMethod' => $request->PaymentMethod
             ]);
 
             // Create order details
-            foreach ($request->items as $item) {
+            foreach ($request->OrderItems as $item) {
                 $book = Book::find($item['BookID']);
                 
                 // Check stock
@@ -111,7 +112,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $order->load(['orderDetails.book', 'user']),
+                'data' => $order->load(['orderDetails.book', 'customerAccount']),
                 'message' => 'Order created successfully'
             ], 201);
 
@@ -127,7 +128,7 @@ class OrderController extends Controller
     public function show($id)
     {
         try {
-            $order = Order::with(['user', 'orderDetails.book'])->find($id);
+            $order = Order::with(['customerAccount', 'orderDetails.book'])->find($id);
             
             if (!$order) {
                 return response()->json([
@@ -178,7 +179,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $order->fresh()->load(['orderDetails.book', 'user']),
+                'data' => $order->fresh()->load(['orderDetails.book', 'customerAccount']),
                 'message' => 'Order updated successfully'
             ]);
         } catch (\Exception $e) {
@@ -239,6 +240,13 @@ class OrderController extends Controller
 
     public function storeGuestOrder(Request $request)
     {
+        return response()->json([
+            'success' => false,
+            'message' => 'Guest checkout is disabled. Please login or create an account to place an order.'
+        ], 403);
+        
+        // Old guest order functionality is commented out since it's no longer needed
+        /*
         $validator = Validator::make($request->all(), [
             'GuestName' => 'required|string|max:100',
             'GuestEmail' => 'required|email|max:100',
@@ -264,7 +272,7 @@ class OrderController extends Controller
 
             // Create order
             $order = Order::create([
-                'UserID' => null, // Null for guest orders
+                'AccountID' => null, // Null for guest orders
                 'GuestName' => $request->GuestName,
                 'GuestEmail' => $request->GuestEmail,
                 'GuestPhone' => $request->GuestPhone,
@@ -313,6 +321,7 @@ class OrderController extends Controller
                 'message' => 'Failed to create guest order: ' . $e->getMessage()
             ], 500);
         }
+        */
     }
 
     /**
@@ -349,6 +358,54 @@ class OrderController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve order statistics: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Display order history for a specific account
+     *
+     * @param Request $request
+     * @param int $accountId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOrderHistory(Request $request, $accountId)
+    {
+        try {
+            // Check if account exists (if needed)
+            // This depends on how you want to handle non-existent accounts
+
+            // Query orders for the specific account
+            $query = Order::with(['orderDetails.book'])
+                ->where('AccountID', $accountId)
+                ->orderBy('OrderDate', 'desc');
+
+            // Filter by status if provided
+            if ($request->has('status')) {
+                $query->where('Status', $request->status);
+            }
+
+            // Filter by date range
+            if ($request->has('from_date')) {
+                $query->whereDate('OrderDate', '>=', $request->from_date);
+            }
+            if ($request->has('to_date')) {
+                $query->whereDate('OrderDate', '<=', $request->to_date);
+            }
+
+            // Paginate results
+            $perPage = $request->input('per_page', 10);
+            $orders = $query->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $orders,
+                'message' => 'Order history retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve order history: ' . $e->getMessage()
             ], 500);
         }
     }

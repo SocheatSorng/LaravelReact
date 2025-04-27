@@ -89,6 +89,7 @@ Route::middleware('api.key')->group(function () {
         Route::post('/', [OrderController::class, 'store']);
         Route::post('/guest', [OrderController::class, 'storeGuestOrder']);
         Route::get('/stats', [OrderController::class, 'getStats']);
+        Route::get('/account/{accountId}/history', [OrderController::class, 'getOrderHistory']);
         Route::get('/{id}', [OrderController::class, 'show']);
         Route::put('/{id}', [OrderController::class, 'update']);
         Route::delete('/{id}', [OrderController::class, 'destroy']);

@@ -11,8 +11,8 @@ class Order extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'UserID',
         'AccountID',
+        'UserID',
         'OrderDate',
         'TotalAmount',
         'Status',
