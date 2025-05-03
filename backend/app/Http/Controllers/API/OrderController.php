@@ -6,12 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Book;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
+    /**
+     * The order notification service instance.
+     *
+     * @var \App\Services\OrderNotificationService
+     */
+    protected $notificationService;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  \App\Services\OrderNotificationService  $notificationService
+     * @return void
+     */
+    public function __construct(OrderNotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     public function index(Request $request)
     {
         try {
@@ -88,7 +106,7 @@ class OrderController extends Controller
             // Create order details
             foreach ($request->OrderItems as $item) {
                 $book = Book::find($item['BookID']);
-                
+
                 // Check stock
                 if ($book->StockQuantity < $item['Quantity']) {
                     throw new \Exception("Insufficient stock for book: {$book->Title}");
@@ -110,9 +128,15 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Load order relationships for the notification
+            $order->load(['orderDetails.book', 'customerAccount']);
+
+            // Send order notification
+            $this->notificationService->sendNewOrderNotifications($order);
+
             return response()->json([
                 'success' => true,
-                'data' => $order->load(['orderDetails.book', 'customerAccount']),
+                'data' => $order,
                 'message' => 'Order created successfully'
             ], 201);
 
@@ -129,7 +153,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::with(['customerAccount', 'orderDetails.book'])->find($id);
-            
+
             if (!$order) {
                 return response()->json([
                     'success' => false,
@@ -167,7 +191,7 @@ class OrderController extends Controller
 
         try {
             $order = Order::find($id);
-            
+
             if (!$order) {
                 return response()->json([
                     'success' => false,
@@ -194,7 +218,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::find($id);
-            
+
             if (!$order) {
                 return response()->json([
                     'success' => false,
@@ -244,7 +268,7 @@ class OrderController extends Controller
             'success' => false,
             'message' => 'Guest checkout is disabled. Please login or create an account to place an order.'
         ], 403);
-        
+
         // Old guest order functionality is commented out since it's no longer needed
         /*
         $validator = Validator::make($request->all(), [
@@ -286,7 +310,7 @@ class OrderController extends Controller
             // Create order details
             foreach ($request->items as $item) {
                 $book = Book::find($item['BookID']);
-                
+
                 // Check stock
                 if ($book->StockQuantity < $item['Quantity']) {
                     throw new \Exception("Insufficient stock for book: {$book->Title}");
@@ -326,7 +350,7 @@ class OrderController extends Controller
 
     /**
      * Get order statistics
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getStats()
@@ -334,14 +358,14 @@ class OrderController extends Controller
         try {
             // Get total count of all orders
             $totalOrders = Order::count();
-            
+
             // Get count of orders by status
             $pendingOrders = Order::where('Status', 'pending')->count();
             $processingOrders = Order::where('Status', 'processing')->count();
             $shippedOrders = Order::where('Status', 'shipped')->count();
             $deliveredOrders = Order::where('Status', 'delivered')->count();
             $cancelledOrders = Order::where('Status', 'cancelled')->count();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => [

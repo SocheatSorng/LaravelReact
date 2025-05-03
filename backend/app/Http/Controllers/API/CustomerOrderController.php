@@ -8,12 +8,30 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Book;
 use App\Models\Cart;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class CustomerOrderController extends Controller
 {
+    /**
+     * The order notification service instance.
+     *
+     * @var \App\Services\OrderNotificationService
+     */
+    protected $notificationService;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  \App\Services\OrderNotificationService  $notificationService
+     * @return void
+     */
+    public function __construct(OrderNotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * Create a new order for the authenticated customer
      */
@@ -50,7 +68,7 @@ class CustomerOrderController extends Controller
             // Use cart items if specified
             if ($request->has('UseCartItems') && $request->UseCartItems) {
                 $cartItems = Cart::where('AccountID', $customer->AccountID)->get();
-                
+
                 if ($cartItems->isEmpty()) {
                     return response()->json([
                         'status' => 'error',
@@ -60,34 +78,34 @@ class CustomerOrderController extends Controller
 
                 foreach ($cartItems as $cartItem) {
                     $book = Book::find($cartItem->BookID);
-                    
+
                     if (!$book) {
                         continue;
                     }
-                    
+
                     // Check stock
                     if ($book->StockQuantity < $cartItem->Quantity) {
                         throw new \Exception("Insufficient stock for book: {$book->Title}");
                     }
-                    
+
                     $orderItems[] = [
                         'BookID' => $book->BookID,
                         'Quantity' => $cartItem->Quantity,
                         'Price' => $book->Price
                     ];
-                    
+
                     $totalAmount += ($book->Price * $cartItem->Quantity);
                 }
             } else {
                 // Use items from request
                 foreach ($request->items as $item) {
                     $book = Book::find($item['BookID']);
-                    
+
                     // Check stock
                     if ($book->StockQuantity < $item['Quantity']) {
                         throw new \Exception("Insufficient stock for book: {$book->Title}");
                     }
-                    
+
                     $totalAmount += ($item['Price'] * $item['Quantity']);
                     $orderItems[] = $item;
                 }
@@ -106,7 +124,7 @@ class CustomerOrderController extends Controller
             // Create order details
             foreach ($orderItems as $item) {
                 $book = Book::find($item['BookID']);
-                
+
                 // Create order detail
                 OrderDetail::create([
                     'OrderID' => $order->OrderID,
@@ -128,10 +146,16 @@ class CustomerOrderController extends Controller
 
             DB::commit();
 
+            // Load order relationships for the notification
+            $order->load(['orderDetails.book', 'customerAccount']);
+
+            // Send order notification
+            $this->notificationService->sendNewOrderNotifications($order);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Order placed successfully',
-                'data' => $order->load('orderDetails.book')
+                'data' => $order
             ], 201);
 
         } catch (\Exception $e) {
@@ -150,24 +174,24 @@ class CustomerOrderController extends Controller
     {
         try {
             $customer = $request->user();
-            
+
             $query = Order::with(['orderDetails.book'])
                 ->where('AccountID', $customer->AccountID);
-            
+
             // Filter by status
             if ($request->has('status')) {
                 $query->where('Status', $request->status);
             }
-            
+
             // Sort orders
             $sortField = $request->input('sort_by', 'OrderDate');
             $sortDirection = $request->input('sort_direction', 'desc');
             $query->orderBy($sortField, $sortDirection);
-            
+
             // Paginate results
             $perPage = $request->input('per_page', 10);
             $orders = $query->paginate($perPage);
-            
+
             return response()->json([
                 'status' => 'success',
                 'data' => $orders,
@@ -188,19 +212,19 @@ class CustomerOrderController extends Controller
     {
         try {
             $customer = $request->user();
-            
+
             $order = Order::with(['orderDetails.book'])
                 ->where('AccountID', $customer->AccountID)
                 ->where('OrderID', $id)
                 ->first();
-            
+
             if (!$order) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Order not found or does not belong to you'
                 ], 404);
             }
-            
+
             return response()->json([
                 'status' => 'success',
                 'data' => $order,
@@ -222,28 +246,28 @@ class CustomerOrderController extends Controller
     {
         try {
             $customer = $request->user();
-            
+
             $order = Order::with('orderDetails')
                 ->where('AccountID', $customer->AccountID)
                 ->where('OrderID', $id)
                 ->first();
-            
+
             if (!$order) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Order not found or does not belong to you'
                 ], 404);
             }
-            
+
             if ($order->Status !== 'pending') {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Only pending orders can be canceled'
                 ], 400);
             }
-            
+
             DB::beginTransaction();
-            
+
             // Restore stock quantities
             foreach ($order->orderDetails as $detail) {
                 $book = Book::find($detail->BookID);
@@ -251,14 +275,14 @@ class CustomerOrderController extends Controller
                     'StockQuantity' => $book->StockQuantity + $detail->Quantity
                 ]);
             }
-            
+
             // Update order status
             $order->update([
                 'Status' => 'cancelled'
             ]);
-            
+
             DB::commit();
-            
+
             return response()->json([
                 'status' => 'success',
                 'data' => $order->fresh(),
@@ -272,4 +296,4 @@ class CustomerOrderController extends Controller
             ], 500);
         }
     }
-} 
+}
