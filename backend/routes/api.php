@@ -17,7 +17,6 @@ use App\Http\Controllers\API\PageContentController;
 use App\Http\Controllers\API\ApiKeyController;
 use App\Http\Controllers\API\CustomerAccountController;
 use App\Http\Controllers\API\CustomerOrderController;
-use App\Http\Controllers\API\TelegramController;
 use App\Http\Middleware\ValidateApiKey;
 use App\Http\Middleware\AdminOnly;
 use Illuminate\Support\Str;
@@ -54,7 +53,6 @@ Route::middleware('api.key')->group(function () {
     // Books CRUD routes
     Route::prefix('books')->group(function () {
         Route::get('/search', [BookController::class, 'search']);
-        Route::get('/sort', [BookController::class, 'sortBooks']);
         Route::get('/', [BookController::class, 'index']);
         Route::post('/', [BookController::class, 'store']);
         Route::get('/featured', [BookController::class, 'featured']);
@@ -88,14 +86,14 @@ Route::middleware('api.key')->group(function () {
     // Order CRUD routes
     Route::prefix('orders')->group(function () {
         Route::get('/', [OrderController::class, 'index']);
-        // Apply PayPal return check middleware to the store routes
-        Route::post('/', [OrderController::class, 'store'])->middleware('paypal.return');
-        Route::post('/guest', [OrderController::class, 'storeGuestOrder'])->middleware('paypal.return');
+        Route::post('/', [OrderController::class, 'store']);
+        Route::post('/guest', [OrderController::class, 'storeGuestOrder']);
         Route::get('/stats', [OrderController::class, 'getStats']);
         Route::get('/account/{accountId}/history', [OrderController::class, 'getOrderHistory']);
         Route::get('/{id}', [OrderController::class, 'show']);
         Route::put('/{id}', [OrderController::class, 'update']);
         Route::delete('/{id}', [OrderController::class, 'destroy']);
+        Route::post('/{id}/payment', [OrderController::class, 'updatePayment']);
     });
 
     // OrderDetail CRUD routes
@@ -173,7 +171,7 @@ Route::prefix('customer')->middleware('api.key')->group(function () {
     // Public routes (no auth required)
     Route::post('/register', [CustomerAccountController::class, 'register']);
     Route::post('/login', [CustomerAccountController::class, 'login']);
-
+    
     // Protected routes (auth required)
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [CustomerAccountController::class, 'logout']);
@@ -181,44 +179,21 @@ Route::prefix('customer')->middleware('api.key')->group(function () {
         Route::put('/profile', [CustomerAccountController::class, 'update']);
         Route::post('/change-password', [CustomerAccountController::class, 'changePassword']);
         Route::post('/deactivate', [CustomerAccountController::class, 'deactivate']);
-
+        
         // Customer order routes
         Route::prefix('orders')->group(function () {
-            // Apply PayPal return check middleware to the placeOrder route
-            Route::post('/', [CustomerOrderController::class, 'placeOrder'])->middleware('paypal.return');
+            Route::post('/', [CustomerOrderController::class, 'placeOrder']);
             Route::get('/', [CustomerOrderController::class, 'getMyOrders']);
             Route::get('/{id}', [CustomerOrderController::class, 'getMyOrder']);
             Route::post('/{id}/cancel', [CustomerOrderController::class, 'cancelMyOrder']);
+            Route::post('/{id}/payment', [CustomerOrderController::class, 'updateOrderPayment']);
         });
     });
-
+    
     // Admin-only routes
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/accounts', [CustomerAccountController::class, 'index']);
         Route::get('/accounts/{id}', [CustomerAccountController::class, 'getById']);
         Route::post('/accounts/{id}/toggle-activation', [CustomerAccountController::class, 'toggleActivation']);
     });
-});
-
-// Telegram webhook routes
-Route::prefix('telegram')->group(function () {
-    // Public webhook endpoint (needs to be accessible by Telegram servers)
-    Route::post('/webhook', [TelegramController::class, 'webhook']);
-
-    // For testing purposes, make these endpoints public
-    // In production, these should be protected with authentication
-    Route::get('/webhook-info', [TelegramController::class, 'webhookInfo']);
-    Route::post('/set-webhook', [TelegramController::class, 'setWebhook']);
-    Route::post('/delete-webhook', [TelegramController::class, 'deleteWebhook']);
-    Route::post('/test-message', [TelegramController::class, 'sendTestMessage']);
-
-    // Admin-only management routes (commented out for now)
-    /*
-    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-        Route::get('/webhook-info', [TelegramController::class, 'webhookInfo']);
-        Route::post('/set-webhook', [TelegramController::class, 'setWebhook']);
-        Route::post('/delete-webhook', [TelegramController::class, 'deleteWebhook']);
-        Route::post('/test-message', [TelegramController::class, 'sendTestMessage']);
-    });
-    */
 });

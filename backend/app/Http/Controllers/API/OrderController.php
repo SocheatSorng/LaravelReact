@@ -128,11 +128,14 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // Load order relationships for the notification
+            // Load order relationships
             $order->load(['orderDetails.book', 'customerAccount']);
 
-            // Send order notification
-            $this->notificationService->sendNewOrderNotifications($order);
+            // Only send notification for non-PayPal orders or if order status is not pending
+            // For PayPal, notifications will be sent after payment confirmation
+            if ($order->PaymentMethod !== 'PayPal' && $order->Status !== 'pending') {
+                $this->notificationService->sendNewOrderNotifications($order);
+            }
 
             return response()->json([
                 'success' => true,
@@ -430,6 +433,79 @@ class OrderController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve order history: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update order payment status.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function updatePayment(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'PaymentMethod' => 'required|string',
+            'PaymentStatus' => 'required|string|in:pending,processing,completed,failed,cancelled',
+            'PaymentDetails' => 'sometimes|array'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+            
+            $order = Order::find($id);
+
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+            }
+
+            // Update the order status based on payment status
+            $orderStatus = 'pending';
+            if ($request->PaymentStatus === 'completed') {
+                $orderStatus = 'processing'; // Change to 'completed' if you want to mark as complete
+            } elseif ($request->PaymentStatus === 'failed') {
+                $orderStatus = 'cancelled';
+            }
+
+            $order->update([
+                'Status' => $orderStatus,
+                // You could also store payment details if you have a column for it
+                // 'PaymentDetails' => json_encode($request->PaymentDetails)
+            ]);
+
+            DB::commit();
+
+            // Only send notification if payment is completed
+            if ($request->PaymentStatus === 'completed') {
+                // Load order relationships for the notification
+                $order->load(['orderDetails.book', 'customerAccount']);
+                
+                // Send order notification
+                $this->notificationService->sendNewOrderNotifications($order);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $order->fresh()->load(['orderDetails.book', 'customerAccount']),
+                'message' => 'Payment updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update payment: ' . $e->getMessage()
             ], 500);
         }
     }
