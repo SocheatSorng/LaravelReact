@@ -22,9 +22,13 @@ class PayPalReturnCheck
         // Store this information in the request for later use
         $request->attributes->set('is_paypal_return', $isPayPalReturn);
         
+        // Get payment method in a case-insensitive way
+        $paymentMethod = strtolower($request->input('PaymentMethod', ''));
+        $isPayPal = ($paymentMethod === 'paypal');
+        
         // If this is not a PayPal return and the payment method is PayPal,
         // temporarily disable Telegram notifications
-        if (!$isPayPalReturn && $request->input('PaymentMethod') === 'paypal') {
+        if (!$isPayPalReturn && $isPayPal) {
             // Store the original config value
             $originalValue = Config::get('telegram.notifications.enabled');
             $request->attributes->set('original_telegram_notifications_enabled', $originalValue);

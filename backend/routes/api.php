@@ -21,6 +21,7 @@ use App\Http\Middleware\ValidateApiKey;
 use App\Http\Middleware\AdminOnly;
 use Illuminate\Support\Str;
 use App\Models\ApiKey;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,7 +94,7 @@ Route::middleware('api.key')->group(function () {
         Route::get('/{id}', [OrderController::class, 'show']);
         Route::put('/{id}', [OrderController::class, 'update']);
         Route::delete('/{id}', [OrderController::class, 'destroy']);
-        Route::post('/{id}/payment', [OrderController::class, 'updatePayment']);
+        Route::post('/{id}/payment', [OrderController::class, 'updatePayment'])->middleware('paypal.return');
     });
 
     // OrderDetail CRUD routes
@@ -163,6 +164,188 @@ Route::prefix('public')->group(function () {
     Route::get('/pages/{slug}', [PageContentController::class, 'getPublishedPage']);
 });
 
+// CSRF Token route for web apps
+Route::get('/csrf-token', function() {
+    // Force regenerate a new token
+    $token = Str::random(40);
+    session(['_token' => $token]);
+    
+    Log::info('CSRF token generated', [
+        'token' => $token,
+        'ip' => request()->ip(),
+        'timestamp' => now()->toDateTimeString()
+    ]);
+    
+    return response()->json([
+        'token' => $token,
+        'status' => 'success'
+    ]);
+});
+
+// PayPal webhook for web platform notifications
+Route::post('/paypal-webhook', function(Request $request) {
+    // Log the webhook request with more details
+    Log::info('PayPal webhook received', [
+        'data' => $request->all(), 
+        'headers' => $request->header(),
+        'ip' => $request->ip(),
+        'path' => $request->path(),
+        'timestamp' => now()->toDateTimeString()
+    ]);
+    
+    // Extract order ID and payment ID
+    $orderId = $request->input('order_id');
+    $paymentId = $request->input('payment_id') ?? $request->input('paymentId');
+    $isDirect = $request->input('is_direct_webhook', false);
+    $fullUrl = $request->input('full_url', '');
+    
+    // Handle case where the order ID contains query parameters
+    if ($orderId && strpos($orderId, '?') !== false) {
+        $parts = explode('?', $orderId);
+        $orderId = $parts[0];
+        
+        Log::info('Extracted order ID from malformed parameter', [
+            'original' => $request->input('order_id'),
+            'extracted' => $orderId
+        ]);
+        
+        // Try to extract payment ID from embedded query string if not already set
+        if (!$paymentId && isset($parts[1])) {
+            parse_str($parts[1], $queryParams);
+            $paymentId = $queryParams['paymentId'] ?? null;
+            
+            if ($paymentId) {
+                Log::info('Extracted payment ID from embedded query string', [
+                    'extracted_payment_id' => $paymentId
+                ]);
+            }
+        }
+    }
+    
+    // If we have a full URL but no payment ID, try to extract it
+    if (!$paymentId && $fullUrl) {
+        if (preg_match('/paymentId=([^&]+)/', $fullUrl, $matches)) {
+            $paymentId = $matches[1];
+            Log::info('Extracted payment ID from full URL', [
+                'extracted_payment_id' => $paymentId
+            ]);
+        }
+    }
+    
+    // If no order ID provided, but we have a payment ID, try to find the order by payment transaction
+    $order = null;
+    if (!$orderId && $paymentId) {
+        Log::info('No order ID provided, trying to find order by payment ID', [
+            'payment_id' => $paymentId
+        ]);
+        
+        // First try to find an order with this payment ID in payment details column if it exists
+        try {
+            $orderWithPaymentDetails = \App\Models\Order::where('OrderStatus', '!=', 'Completed')
+                ->where('PaymentMethod', 'PayPal')
+                ->where(function($query) use ($paymentId) {
+                    $query->where('PaymentDetails', 'like', '%'.$paymentId.'%')
+                          ->orWhere('Notes', 'like', '%'.$paymentId.'%');
+                })
+                ->orderBy('OrderDate', 'desc')
+                ->first();
+                
+            if ($orderWithPaymentDetails) {
+                $order = $orderWithPaymentDetails;
+                Log::info('Found order by payment ID in details column', [
+                    'order_id' => $order->OrderID,
+                    'order_status' => $order->OrderStatus
+                ]);
+                $orderId = $order->OrderID;
+            }
+        } catch (\Exception $e) {
+            Log::warning('Error searching for order with payment details', [
+                'error' => $e->getMessage()
+            ]);
+        }
+        
+        // If still not found, get the most recent PayPal order
+        if (!$order) {
+            $order = \App\Models\Order::where('OrderStatus', '!=', 'Completed')
+                ->where('PaymentMethod', 'PayPal')
+                ->orderBy('OrderDate', 'desc')
+                ->first();
+                
+            if ($order) {
+                Log::info('Found most recent PayPal order', [
+                    'order_id' => $order->OrderID,
+                    'order_status' => $order->OrderStatus
+                ]);
+                $orderId = $order->OrderID;
+            }
+        }
+    } else if ($orderId) {
+        // Get the order by ID
+        $order = \App\Models\Order::find($orderId);
+    }
+    
+    if ($order) {
+        // Log the order info
+        Log::info('Found order for webhook', [
+            'order_id' => $order->OrderID,
+            'order_status' => $order->OrderStatus,
+            'is_direct' => $isDirect
+        ]);
+        
+        // Only process if not already completed
+        if ($order->OrderStatus !== 'Completed') {
+            // Load order relationships
+            $order->load(['orderDetails.book', 'customerAccount']);
+            
+            // Create notification for admin
+            try {
+                $telegramService = app(\App\Services\TelegramBotService::class);
+                $notificationService = new \App\Services\OrderNotificationService($telegramService);
+                $notified = $notificationService->sendNewOrderNotifications($order);
+                
+                // Update order status if notification sent
+                if ($notified) {
+                    $order->OrderStatus = 'Completed';
+                    $order->save();
+                    
+                    Log::info('Order notification sent successfully', [
+                        'order_id' => $order->OrderID,
+                        'is_direct' => $isDirect
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to send order notification', [
+                    'order_id' => $order->OrderID,
+                    'error' => $e->getMessage(),
+                    'is_direct' => $isDirect
+                ]);
+            }
+        } else {
+            Log::info('Order already completed, skipping notification', [
+                'order_id' => $order->OrderID,
+                'is_direct' => $isDirect
+            ]);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Webhook processed successfully',
+            'order_status' => $order->OrderStatus
+        ]);
+    } else {
+        Log::warning('Order not found for webhook', [
+            'order_id' => $orderId,
+            'payment_id' => $paymentId,
+            'is_direct' => $isDirect
+        ]);
+    }
+    
+    return response()->json([
+        'success' => false,
+        'message' => 'No valid order found'
+    ]);
+});
+
 // Keep the existing public route for backward compatibility
 Route::get('/pages/{slug}', [PageContentController::class, 'getPublishedPage']);
 
@@ -186,7 +369,7 @@ Route::prefix('customer')->middleware('api.key')->group(function () {
             Route::get('/', [CustomerOrderController::class, 'getMyOrders']);
             Route::get('/{id}', [CustomerOrderController::class, 'getMyOrder']);
             Route::post('/{id}/cancel', [CustomerOrderController::class, 'cancelMyOrder']);
-            Route::post('/{id}/payment', [CustomerOrderController::class, 'updateOrderPayment']);
+            Route::post('/{id}/payment', [CustomerOrderController::class, 'updateOrderPayment'])->middleware('paypal.return');
         });
     });
     
