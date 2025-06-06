@@ -4,32 +4,35 @@ import PageHeader from "../components/PageHeader";
 import delImgUrl from "../assets/images/shop/del.png";
 import CheckoutPage from "./CheckOutPage";
 import { getImageUrl } from "../utilis/apiService";
+import { useCart } from "../hooks/useCart";
+
 
 // Fallback image in case the item image is missing or broken
 const fallbackImage = "/assets/images/product-placeholder.png";
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState([]);
+  const {
+    cartItems,
+    cartCount,
+    cartTotal,
+    updateItemQuantity,
+    removeFromCart,
+    refreshCart,
+    isLoading
+  } = useCart();
+
   const [error, setError] = useState(null);
 
+  // Delivery information state (simplified)
+  const [shippingInfo, setShippingInfo] = useState({
+    phone: '',
+    address: ''
+  });
+
+  // Refresh cart data when component mounts
   useEffect(() => {
-    try {
-      // fetch cart items from local storage
-      const storedCartItems = JSON.parse(localStorage.getItem("cart")) || [];
-
-      // Parse prices to ensure they're numbers
-      const parsedCartItems = storedCartItems.map((item) => ({
-        ...item,
-        price: parseFloat(item.price) || 0,
-        quantity: parseInt(item.quantity) || 1,
-      }));
-
-      setCartItems(parsedCartItems);
-    } catch (error) {
-      console.error("Error loading cart:", error);
-      setError("Failed to load cart items");
-    }
-  }, []);
+    refreshCart();
+  }, [refreshCart]);
 
   // calculate prices
   const calculateTotalPrice = (item) => {
@@ -39,56 +42,54 @@ const CartPage = () => {
   };
 
   // handle quantity increase
-  const handleIncrease = (item) => {
+  const handleIncrease = async (item) => {
     try {
-      item.quantity = parseInt(item.quantity) + 1;
-      setCartItems([...cartItems]);
-
-      // update local storage with new cart items
-      updateLocalStorage(cartItems);
+      const newQuantity = parseInt(item.quantity) + 1;
+      const result = await updateItemQuantity(item.id, newQuantity);
+      if (!result.success) {
+        setError(result.message || "Failed to update quantity");
+      }
     } catch (error) {
       console.error("Error increasing quantity:", error);
+      setError("Failed to update quantity");
     }
   };
 
   // handle quantity decrease
-  const handleDecrease = (item) => {
+  const handleDecrease = async (item) => {
     try {
-      if (parseInt(item.quantity) > 1) {
-        item.quantity = parseInt(item.quantity) - 1;
-        setCartItems([...cartItems]);
-
-        // update local storage with new cart items
-        updateLocalStorage(cartItems);
+      const newQuantity = parseInt(item.quantity) - 1;
+      if (newQuantity > 0) {
+        const result = await updateItemQuantity(item.id, newQuantity);
+        if (!result.success) {
+          setError(result.message || "Failed to update quantity");
+        }
       }
     } catch (error) {
       console.error("Error decreasing quantity:", error);
+      setError("Failed to update quantity");
     }
   };
 
   // handle item removal
-  const handleRemoveItem = (item) => {
+  const handleRemoveItem = async (item) => {
     try {
-      const updatedCart = cartItems.filter(
-        (cartItem) => cartItem.id !== item.id
-      );
-
-      // update new cart
-      setCartItems(updatedCart);
-
-      updateLocalStorage(updatedCart);
+      const result = await removeFromCart(item.id);
+      if (!result.success) {
+        setError(result.message || "Failed to remove item");
+      }
     } catch (error) {
       console.error("Error removing item:", error);
+      setError("Failed to remove item");
     }
   };
 
-  const updateLocalStorage = (cart) => {
-    try {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    } catch (error) {
-      console.error("Error updating cart in localStorage:", error);
-      setError("Failed to update cart");
-    }
+  // Delivery information handler
+  const handleShippingInfoChange = (field, value) => {
+    setShippingInfo(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   // cart subtotal
@@ -96,8 +97,8 @@ const CartPage = () => {
     return total + calculateTotalPrice(item);
   }, 0);
 
-  // order total
-  const orderTotal = cartSubTotal;
+  // order total (always includes $1 delivery)
+  const orderTotal = cartSubTotal + 1.00;
 
   if (error) {
     return (
@@ -116,6 +117,19 @@ const CartPage = () => {
 
       <div className="shop-cart padding-tb">
         <div className="container">
+          {/* Error Display */}
+          {error && (
+            <div className="alert alert-danger alert-dismissible fade show" role="alert">
+              {error}
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setError(null)}
+                aria-label="Close"
+              ></button>
+            </div>
+          )}
+
           <div className="section-wrapper">
             {cartItems.length === 0 ? (
               <div className="text-center py-5">
@@ -176,6 +190,10 @@ const CartPage = () => {
                               <div
                                 className="dec qtybutton"
                                 onClick={() => handleDecrease(item)}
+                                style={{
+                                  opacity: isLoading ? 0.6 : 1,
+                                  pointerEvents: isLoading ? 'none' : 'auto'
+                                }}
                               >
                                 -
                               </div>
@@ -189,6 +207,10 @@ const CartPage = () => {
                               <div
                                 className="inc qtybutton"
                                 onClick={() => handleIncrease(item)}
+                                style={{
+                                  opacity: isLoading ? 0.6 : 1,
+                                  pointerEvents: isLoading ? 'none' : 'auto'
+                                }}
                               >
                                 +
                               </div>
@@ -200,15 +222,27 @@ const CartPage = () => {
                           </td>
 
                           <td className="cat-edit">
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleRemoveItem(item);
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item)}
+                              disabled={isLoading}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: '0',
+                                cursor: isLoading ? 'not-allowed' : 'pointer',
+                                opacity: isLoading ? 0.6 : 1
                               }}
+                              title="Remove item from cart"
                             >
-                              <img src={delImgUrl} alt="Delete Item" />
-                            </a>
+                              {isLoading ? (
+                                <div className="spinner-border spinner-border-sm" role="status">
+                                  <span className="visually-hidden">Loading...</span>
+                                </div>
+                              ) : (
+                                <img src={delImgUrl} alt="Delete Item" />
+                              )}
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -257,38 +291,20 @@ const CartPage = () => {
                     <div className="row">
                       <div className="col-md-6 col-12">
                         <div className="calculate-shiping">
-                          <h3>Calculate Shipping</h3>
-                          <div className="outline-select">
-                            <select>
-                              <option value="uk">Cambodia</option>
-                              <option value="us">United State</option>
-                              <option value="cat">Canada</option>
-                              <option value="jp">Japan</option>
-                            </select>
-                            <span className="select-icon">
-                              <i className="icofont-rounded-down"></i>
-                            </span>
+                          <h3>🚚 Delivery Information</h3>
+                          <div className="delivery-notice mb-3 p-3" style={{backgroundColor: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '8px'}}>
+                            <div className="d-flex align-items-center">
+                              <span style={{fontSize: '1.2em', marginRight: '8px'}}>🇰🇭</span>
+                              <strong>Cambodia Delivery - $1.00</strong>
+                            </div>
+                            <small className="text-muted">Fixed delivery cost within Cambodia</small>
                           </div>
 
-                          <div className="outline-select shipping-select">
-                            <select>
-                              <option value="pp">Phnom Penh</option>
-                              <option value="ny">New York</option>
-                              <option value="syd">Sydney</option>
-                              <option value="tk">Tokyo</option>
-                            </select>
-                            <span className="select-icon">
-                              <i className="icofont-rounded-down"></i>
-                            </span>
-                          </div>
-                          <input
-                            type="text"
-                            name="postalCode"
-                            id="postalCode"
-                            placeholder="Postalcode/ZIP *"
-                            className="cart-page-input-text"
-                          />
-                          <button type="submit">Update Address</button>
+
+
+
+
+
                         </div>
                       </div>
                       <div className="col-md-6 col-12">
@@ -302,14 +318,17 @@ const CartPage = () => {
                               </p>
                             </li>
                             <li>
-                              <span className="pull-left">
-                                Shipping and Handling
-                              </span>
-                              <p className="pull-right">Free Shipping</p>
-                            </li>
-                            <li>
-                              <span className="pull-left">Order Total</span>
+                              <span className="pull-left">Items Count</span>
                               <p className="pull-right">
+                                {cartItems.reduce((total, item) => total + item.quantity, 0)} books
+                              </p>
+                            </li>
+
+
+
+                            <li className="order-total-row">
+                              <span className="pull-left fw-bold">Order Total</span>
+                              <p className="pull-right fw-bold fs-5">
                                 $ {orderTotal.toFixed(2)}
                               </p>
                             </li>

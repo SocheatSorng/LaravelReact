@@ -12,7 +12,7 @@ import { get } from "../utilis/apiService";
 const Shop = () => {
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get("category");
-  const [GridList, setGridList] = useState(true);
+  const [GridList] = useState(true); // Fixed to grid view only
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -158,24 +158,6 @@ const Shop = () => {
                     <>
                       <div className="shop-title d-flex flex-warp justify-content-between">
                         <p>{showResults}</p>
-                        <div
-                          className={`product-view-mode ${
-                            GridList ? "gridActive" : "listActive"
-                          }`}
-                        >
-                          <button
-                            className="grid"
-                            onClick={() => setGridList(true)}
-                          >
-                            <i className="icofont-ghost"></i>
-                          </button>
-                          <button
-                            className="list"
-                            onClick={() => setGridList(false)}
-                          >
-                            <i className="icofont-listine-dots"></i>
-                          </button>
-                        </div>
                       </div>
 
                       {/* product cards */}

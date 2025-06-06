@@ -7,12 +7,12 @@
 
 // API Base URL
 export const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+  process.env.REACT_APP_API_URL || "http://13.229.99.101/api";
 
 // API Key - should be loaded from env variable in production
 export const API_KEY =
   process.env.REACT_APP_API_KEY ||
-  "oNm9RNFaejpw0W8MWGtjfPC1tFFJsx7rPVvM5zqPcevnOom86M2RSGcyVmv5";
+  "3EaR78ULtCRLyykSeCENE7E3WStGHqKrFiSppycQwcNj2cLvolcknKemzjnO";
 
 // Default request timeout in milliseconds
 export const API_TIMEOUT = 10000;

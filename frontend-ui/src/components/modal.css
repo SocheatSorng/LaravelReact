@@ -16,7 +16,9 @@
 }
 
 .modal-body {
-  height: 450px;
+  min-height: 450px;
+  max-height: calc(90vh - 100px);
+  overflow-y: auto;
 }
 
 .nav-tabs {
@@ -146,6 +148,59 @@ input::-webkit-inner-spin-button {
   padding: 10px;
   height: auto;
   font-weight: 400;
+}
+
+/* Enhanced modal scrolling */
+.modal-dialog {
+  max-height: 95vh;
+  overflow-y: auto;
+}
+
+.modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Ensure PayPal buttons are properly contained */
+#paypal-button-container {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Form validation styles */
+.form-control.is-valid {
+  border-color: #28a745;
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+}
+
+.valid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #28a745;
+}
+
+/* PayPal validation warning */
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
 }
 
 .guest-form .form-control:focus {

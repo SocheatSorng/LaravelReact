@@ -1,3 +1,4 @@
+/*
 import React from "react";
 import { Render } from "@measured/puck";
 import config from "./puck-config"; // Create this file with the same components as your editor
@@ -12,3 +13,4 @@ const PuckRenderer = ({ data }) => {
 };
 
 export default PuckRenderer;
+*/
