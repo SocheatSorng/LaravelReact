@@ -73,6 +73,12 @@ const OrderSuccess = () => {
     phone
   } = orderData;
 
+  // // Debug logging to help identify the issue
+  // console.log('OrderSuccess - Full orderData:', orderData);
+  // console.log('OrderSuccess - deliveryAddress:', deliveryAddress);
+  // console.log('OrderSuccess - deliveryAddress type:', typeof deliveryAddress);
+  // console.log('OrderSuccess - deliveryAddress length:', deliveryAddress?.length);
+
   return (
     <div>
       <PageHeader title="Order Confirmation" curPage="Order Success" />
@@ -217,7 +223,29 @@ const OrderSuccess = () => {
                       <p className="mb-1">
                         <strong>Address:</strong>
                       </p>
-                      <p className="mb-1">{deliveryAddress}</p>
+                      <p className="mb-1" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {(() => {
+                          // Handle different data types for deliveryAddress
+                          if (typeof deliveryAddress === 'string') {
+                            return deliveryAddress.trim() || 'No address provided';
+                          } else if (typeof deliveryAddress === 'object' && deliveryAddress !== null) {
+                            // If it's an object, try to format it nicely
+                            if (deliveryAddress.address || deliveryAddress.street) {
+                              return [
+                                deliveryAddress.address || deliveryAddress.street,
+                                deliveryAddress.city,
+                                deliveryAddress.state,
+                                deliveryAddress.postalCode || deliveryAddress.zipCode,
+                                deliveryAddress.country
+                              ].filter(Boolean).join(', ');
+                            } else {
+                              return JSON.stringify(deliveryAddress, null, 2);
+                            }
+                          } else {
+                            return deliveryAddress || 'No address provided';
+                          }
+                        })()}
+                      </p>
                       <p className="mb-0">
                         <strong>Delivery Cost:</strong> $1.00 (Cambodia only)
                       </p>
